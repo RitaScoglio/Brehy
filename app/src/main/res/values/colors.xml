@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brown_superdark">#2b2315</color>
+    <color name="brown_dark">#524229</color>
+    <color name="brown_semidark">#866c43</color>
+    <color name="brown">#b99e73</color>
+    <color name="brown_semilight">#d3c2a7</color>
+    <color name="brown_light">#e7ddce</color>
+    <color name="brown_superlight">#f4efe8</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#80000000</color>
+</resources>

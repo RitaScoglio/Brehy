@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Farnosť Brehy</string>
+    <string name="adresa">Rímskokatolícka Cirkev\nFarnosť sv. Jozefa\nBrehy 2\n968 01 Brehy</string>
+    <string name="telefon">045/532 24 51</string>
+    <string name="email">fara.brehy@gmail.com</string>
+    <string name="ico">319 39 287</string>
+    <string name="dic">2021111917</string>
+    <string name="iban">IBAN:\nSK87 0900 0000 0000 7433 7685</string>
+    <string name="bic">BIC:\nGIBASKBX</string>
+</resources>

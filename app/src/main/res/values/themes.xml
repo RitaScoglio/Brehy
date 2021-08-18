@@ -1,0 +1,19 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.Brehy" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/brown_dark</item>
+        <item name="colorPrimaryVariant">@color/brown_superdark</item>
+        <item name="colorOnPrimary">@color/brown_superlight</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/brown_dark</item>
+        <item name="colorSecondaryVariant">@color/brown_superdark</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="android:textColor">@color/black</item>
+        <item name="android:windowBackground">@color/brown_superlight</item>
+    </style>
+
+</resources>

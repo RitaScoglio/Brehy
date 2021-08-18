@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_aktuality"
+        android:icon="@drawable/ic_aktuality"
+        android:title="Aktuality"/>
+    <item
+        android:id="@+id/menu_oznamy"
+        android:icon="@drawable/ic_oznamy"
+        android:title="Oznamy"/>
+    <item
+        android:id="@+id/menu_stranka"
+        android:icon="@drawable/ic_web"
+        android:title="Webstránka"/>
+    <item
+        android:id="@+id/menu_lektori"
+        android:icon="@drawable/ic_lektori"
+        android:title="Lektori"/>
+    <item
+        android:id="@+id/menu_kontakt"
+        android:icon="@drawable/ic_kontakt"
+        android:title="Kontakt"/>
+</menu>
