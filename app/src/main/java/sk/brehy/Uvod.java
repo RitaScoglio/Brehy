@@ -7,7 +7,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class Uvod extends FirebaseMain {
 
@@ -48,5 +51,17 @@ public class Uvod extends FirebaseMain {
         setContentView(R.layout.activity_uvod);
         setBottomMenu();
         setFirebase();
+
+        //setGoogleMessagingService();
     }
+
+   /* private void setGoogleMessagingService() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                    }
+                });
+    }*/
+
 }
