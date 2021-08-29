@@ -12,7 +12,7 @@ import android.webkit.WebViewClient;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class Webstranka extends AppCompatActivity {
+public class Webstranka extends FirebaseMain {
 
     public void setBottomMenu() {
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);

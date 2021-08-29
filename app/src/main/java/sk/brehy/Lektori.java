@@ -29,7 +29,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
 
-public class Lektori extends AppCompatActivity {
+public class Lektori extends FirebaseMain {
 
     public void setBottomMenu() {
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
