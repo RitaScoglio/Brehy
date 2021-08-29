@@ -21,7 +21,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class Kontakt extends AppCompatActivity {
 
-    public void setBottomMenu(){
+    public void setBottomMenu() {
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -35,7 +35,7 @@ public class Kontakt extends AppCompatActivity {
                         intent = new Intent(getApplicationContext(), Oznamy.class);
                         break;
                     case R.id.menu_stranka:
-                        intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.farabrehy.sk"));
+                        intent = new Intent(getApplicationContext(), Webstranka.class);
                         break;
                     case R.id.menu_lektori:
                         intent = new Intent(getApplicationContext(), Lektori.class);

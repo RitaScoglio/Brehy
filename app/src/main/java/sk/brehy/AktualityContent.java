@@ -36,7 +36,7 @@ public class AktualityContent extends FirebaseMain {
                         intent = new Intent(getApplicationContext(), Oznamy.class);
                         break;
                     case R.id.menu_stranka:
-                        intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.farabrehy.sk"));
+                        intent = new Intent(getApplicationContext(), Webstranka.class);
                         break;
                     case R.id.menu_lektori:
                         intent = new Intent(getApplicationContext(), Lektori.class);

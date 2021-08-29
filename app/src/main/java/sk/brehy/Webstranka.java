@@ -1,18 +1,18 @@
 package sk.brehy;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.messaging.FirebaseMessaging;
 
-public class Uvod extends FirebaseMain {
+public class Webstranka extends AppCompatActivity {
 
     public void setBottomMenu() {
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation);
@@ -49,20 +49,24 @@ public class Uvod extends FirebaseMain {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_uvod);
+        setContentView(R.layout.activity_webpage);
+
         setBottomMenu();
-        setFirebase();
 
-        //setGoogleMessagingService();
+        WebView web_page = findViewById(R.id.web);
+        web_page.loadUrl("https://farabrehy.sk");
+        WebSettings webSettings = web_page.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        web_page.setWebViewClient(new WebViewClient() {
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+
+
+            public void onPageFinished(WebView view, String url) {
+            }
+        });
     }
-
-   /* private void setGoogleMessagingService() {
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(new OnCompleteListener<String>() {
-                    @Override
-                    public void onComplete(@NonNull Task<String> task) {
-                    }
-                });
-    }*/
-
 }

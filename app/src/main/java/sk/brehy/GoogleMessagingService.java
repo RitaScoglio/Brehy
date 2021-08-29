@@ -23,7 +23,6 @@ public class GoogleMessagingService extends FirebaseMessagingService {
         title = remoteMessage.getNotification().getTitle();
         text = remoteMessage.getNotification().getBody();
 
-
         Intent intent = new Intent(this, Uvod.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
