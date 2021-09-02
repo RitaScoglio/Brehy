@@ -8,15 +8,36 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/border_dark.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_add.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_arrow_left.xml" value="1.621875" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_arrow_right.xml" value="1.621875" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_baseline_keyboard_arrow_left_24.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_baseline_lens_24.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_copy.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_copy_light.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_edit.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_left_arrow.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/ic_right_arrow.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/network_background.xml" value="0.2703125" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/drawable/news_background.xml" value="0.2703125" />
         <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/activity_aktuality.xml" value="0.19701086956521738" />
         <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/activity_aktuality_content.xml" value="0.19701086956521738" />
-        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/activity_lektori.xml" value="0.20108695652173914" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/activity_kontakt.xml" value="0.20516304347826086" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/activity_lektori.xml" value="0.264" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/activity_lektori_login.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/activity_uvod.xml" value="0.19701086956521738" />
         <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/activity_webpage.xml" value="0.25407608695652173" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/calendar_day.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/lektor_dialog.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/network_toast.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/news_list.xml" value="0.20516304347826086" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/people_list.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/toast.xml" value="0.20516304347826086" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

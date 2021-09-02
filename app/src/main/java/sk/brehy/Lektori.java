@@ -1,32 +1,42 @@
 package sk.brehy;
 
+import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.SignInButton;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.amulyakhare.textdrawable.TextDrawable;
+import com.applandeo.materialcalendarview.CalendarView;
+import com.applandeo.materialcalendarview.EventDay;
+import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener;
+import com.applandeo.materialcalendarview.listeners.OnDayClickListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class Lektori extends FirebaseMain {
@@ -45,10 +55,10 @@ public class Lektori extends FirebaseMain {
                         intent = new Intent(getApplicationContext(), Oznamy.class);
                         break;
                     case R.id.menu_stranka:
-                        intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.farabrehy.sk"));
+                        intent = new Intent(getApplicationContext(), Webstranka.class);
                         break;
                     case R.id.menu_lektori:
-                        intent = new Intent(getApplicationContext(), Lektori.class);
+                        intent = new Intent(getApplicationContext(), LektoriLogin.class);
                         break;
                     case R.id.menu_kontakt:
                         intent = new Intent(getApplicationContext(), Kontakt.class);
@@ -63,133 +73,216 @@ public class Lektori extends FirebaseMain {
         });
     }
 
+    CalendarView calendarView;
+    FloatingActionButton floatingActionButton;
+    ListView listView;
+    HashMap<String, ArrayList<People>> list = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lektori);
-
+        getSavedData();
         setBottomMenu();
 
-        /*WebView calendar = findViewById(R.id.calendar);
-        calendar.loadUrl("https://www.google.com/calendar");
-        WebSettings webSettings = calendar.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
-        calendar.setWebViewClient(new WebViewClient() {
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
+        calendarView = (CalendarView) findViewById(R.id.calendarView);
+        calendarView.setOnPreviousPageChangeListener(new OnCalendarPageChangeListener() {
+            @Override
+            public void onChange() {
+                highlightedWeekends();
             }
-
-
-            public void onPageFinished(WebView view, String url) {
-                String user = "lektoribrehy@gmail.com";
-                String password = "1Cit2Cit";
-                calendar.loadUrl("javascript:(function(){" +
-                        "document.querySelector('input.whsOnd.zHQkBf').value = '" + user + "';" +
-                        "document.querySelector('button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ.VfPpkd-LgbsSe-OWXEXe-dgl2Hf.nCP5yc.AjY5Oe.DuMIQc.qIypjc.TrZEUc.lw1w4b').click();" +
-                        "setTimeout(function(){}, 5000);" +
-                        "document.querySelector('input.whsOnd.zHQkBf').value = '" + password + "';" +
-                        "document.querySelector('button.VfPpkd-LgbsSe.VfPpkd-LgbsSe-OWXEXe-k8QpJ.VfPpkd-LgbsSe-OWXEXe-dgl2Hf.nCP5yc AjY5Oe.DuMIQc.qIypjc.TrZEUc.lw1w4b').click();" +
-                        "})()");
+        });
+        calendarView.setOnForwardPageChangeListener(new OnCalendarPageChangeListener() {
+            @Override
+            public void onChange() {
+                highlightedWeekends();
             }
-        });*/
+        });
+        calendarView.setOnDayClickListener(new OnDayClickListener() {
+            @Override
+            public void onDayClick(EventDay eventDay) {
+                writeToListView(eventDay.getCalendar());
+            }
+        });
+        highlightedWeekends();
 
-    }
-        /*SignInButton google_signIn_btn = findViewById(R.id.sign_in_button);
-        google_signIn_btn.setOnClickListener(new View.OnClickListener() {
+        floatingActionButton = findViewById(R.id.floatButton);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                signIn();
+                writeToDatabase(calendarView.getSelectedDate());
             }
         });
 
+        listView = findViewById(R.id.listview_kalendar);
 
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-        // [END config_signin]
-
-        // [START initialize_auth]
-        // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
-        // [END initialize_auth]
-    }
-
-
-    private static final String TAG = "GoogleActivity";
-    private static final int RC_SIGN_IN = 9001;
-
-    // [START declare_auth]
-    private FirebaseAuth mAuth;
-    // [END declare_auth]
-
-    private GoogleSignInClient mGoogleSignInClient;
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        updateUI(currentUser);
-    }
-    // [END on_start_check_user]
-
-    // [START onactivityresult]
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                // Google Sign In was successful, authenticate with Firebase
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d(TAG, "firebaseAuthWithGoogle:" + account.getId());
-                firebaseAuthWithGoogle(account.getIdToken());
-            } catch (ApiException e) {
-                // Google Sign In failed, update UI appropriately
-                Log.w(TAG, "Google sign in failed", e);
+        /*OnSelectDateListener listener = new OnSelectDateListener() {
+            @Override
+            public void onSelect(List<Calendar> calendars) {
+                Toast.makeText(getApplicationContext(), "selected", Toast.LENGTH_SHORT).show();
             }
-        }
-    }
-    // [END onactivityresult]
+        };
+        
+        DatePickerBuilder builder = new DatePickerBuilder(this, listener)
+                .pickerType(CalendarView.ONE_DAY_PICKER);
 
-    // [START auth_with_google]
-    private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            updateUI(null);
+        DatePicker datePicker = builder.build();
+        datePicker.show();
+        */
+
+    }
+
+    private void highlightedWeekends() {
+        List<Calendar> calendars = new ArrayList<>();
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.DAY_OF_MONTH, 1);
+        int month = c.get(Calendar.MONTH);
+        int i = 0;
+        do {
+            int day = c.get(Calendar.DAY_OF_WEEK);
+            if (day == Calendar.SATURDAY || day == Calendar.SUNDAY) {
+                Calendar cal = Calendar.getInstance();
+                cal.set(Calendar.DAY_OF_MONTH, 1);
+                cal.add(Calendar.DATE, i);
+                calendars.add(cal);
+            }
+            i++;
+            c.add(Calendar.DAY_OF_YEAR, 1);
+        } while (c.get(Calendar.MONTH) == month);
+        calendarView.setHighlightedDays(calendars);
+    }
+
+    private void writeToDatabase(Calendar cal) {
+        String date = cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DAY_OF_MONTH);
+        ArrayList<People> current = list.get(date);
+        int num;
+        if (current == null)
+            num = 1;
+        else
+            num = current.size() + 1;
+        if (isNetworkAvailable())
+            openDialog(Integer.toString(num), date, "", "Pridať lektora");
+    }
+
+    private void getSavedData() {
+        kalendar_reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Iterable<DataSnapshot> years = dataSnapshot.getChildren();
+                for (DataSnapshot year : years) {
+                    String y = year.getKey();
+                    Iterable<DataSnapshot> months = year.getChildren();
+                    for (DataSnapshot month : months) {
+                        String m = month.getKey();
+                        Iterable<DataSnapshot> days = month.getChildren();
+                        for (DataSnapshot day : days) {
+                            String d = day.getKey();
+                            Iterable<DataSnapshot> people = day.getChildren();
+                            ArrayList<People> all = new ArrayList<>();
+                            for (DataSnapshot human : people) {
+                                all.add(new People(human.getKey(), (String) human.getValue()));
+                            }
+                            String date = y + "-" + m + "-" + d;
+                            list.put(date, all);
                         }
                     }
-                });
+                }
+                List<EventDay> events = new ArrayList<>();
+                for (Map.Entry<String, ArrayList<People>> entry : list.entrySet()) {
+                    String[] key = entry.getKey().split("-");
+                    int value = entry.getValue().size();
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.set(Integer.parseInt(key[0]), Integer.parseInt(key[1]) - 1, Integer.parseInt(key[2]));
+                    TextDrawable d = TextDrawable.builder()
+                            .beginConfig()
+                            .textColor(getResources().getColor(R.color.brown_superlight))
+                            .bold()
+                            .endConfig()
+                            .buildRound(Integer.toString(value), getResources().getColor(R.color.brown_dark));
+
+                    events.add(new EventDay(calendar, d));
+                }
+                calendarView.setEvents(events);
+                Calendar a = calendarView.getSelectedDate();
+                writeToListView(a);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.d("APP_data", "Failed to read value.", error.toException());
+            }
+        });
     }
-    // [END auth_with_google]
 
-    // [START signin]
-    private void signIn() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+    private void writeToListView(Calendar calendar) {
+        String date = calendar.get(Calendar.YEAR) + "-" + (calendar.get(Calendar.MONTH) + 1) + "-" + calendar.get(Calendar.DAY_OF_MONTH);
+        ArrayList<People> current = list.get(date);
+        if (current != null) {
+            PeopleAdapter adapter = new PeopleAdapter(this, current);
+            listView.setAdapter(adapter);
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                    People people = current.get(position);
+                    if (isNetworkAvailable())
+                        openDialog(people.getNumber(), date, people.getName(), "Upraviť lektora");
+                }
+            });
+        } else {
+            listView.setAdapter(null);
+        }
     }
-    // [END signin]
 
-    private void updateUI(FirebaseUser user) {
+    public void openDialog(String num, String date, String name, String headText) {
+        final Dialog dialog = new Dialog(Lektori.this);
+        dialog.setContentView(R.layout.lektor_dialog);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(dialog.getWindow().getAttributes());
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        TextView head = dialog.findViewById(R.id.head);
+        head.setText(headText);
+        TextView number = dialog.findViewById(R.id.number);
+        number.setText("Poradie: " + num);
+        EditText edit = (EditText) dialog.findViewById(R.id.name);
+        edit.setText(name);
+        Button positive = (Button) dialog.findViewById(R.id.positive);
+        positive.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                String name = edit.getText().toString();
+                if (!name.equals("")) {
+                    String[] keys = date.split("-");
+                    kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).child(String.valueOf(num)).setValue(name);
+                }
+                dialog.dismiss();
+            }
+        });
+        Button negative = (Button) dialog.findViewById(R.id.negative);
+        negative.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
 
-    }*/
+        dialog.show();
+        dialog.getWindow().setAttributes(lp);
+    }
+
+    boolean isNetworkAvailable() {
+        ConnectivityManager manager =
+                (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+        boolean isAvailable = false;
+        if (networkInfo != null && networkInfo.isConnected()) {
+            isAvailable = true;
+        } else {
+            LayoutInflater myInflator = getLayoutInflater();
+            View toastLayout = myInflator.inflate(R.layout.network_toast, (ViewGroup) findViewById(R.id.toast_layout));
+            Toast myToast = new Toast(getApplicationContext());
+            myToast.setDuration(Toast.LENGTH_LONG);
+            myToast.setView(toastLayout);
+            myToast.show();
+        }
+        return isAvailable;
+    }
+
 }

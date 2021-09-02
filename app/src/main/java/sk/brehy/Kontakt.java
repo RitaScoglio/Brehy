@@ -15,7 +15,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -38,7 +37,7 @@ public class Kontakt extends FirebaseMain {
                         intent = new Intent(getApplicationContext(), Webstranka.class);
                         break;
                     case R.id.menu_lektori:
-                        intent = new Intent(getApplicationContext(), Lektori.class);
+                        intent = new Intent(getApplicationContext(), LektoriLogin.class);
                         break;
                     case R.id.menu_kontakt:
                         intent = new Intent(getApplicationContext(), Kontakt.class);
@@ -71,7 +70,7 @@ public class Kontakt extends FirebaseMain {
                 ClipData clip = ClipData.newPlainText("adresa", getResources().getString(R.string.adresa));
                 clipboard.setPrimaryClip(clip);
                 toastMessage.setText("Adresa bola skopírovaná.");
-                Toast myToast=new Toast(getApplicationContext());
+                Toast myToast = new Toast(getApplicationContext());
                 myToast.setDuration(Toast.LENGTH_LONG);
                 myToast.setView(toastLayout);
                 myToast.show();
@@ -96,8 +95,8 @@ public class Kontakt extends FirebaseMain {
             }
         });
 
-        RelativeLayout iban = findViewById(R.id.iban);
-        iban.setOnClickListener(new View.OnClickListener() {
+        RelativeLayout iban_kostol = findViewById(R.id.iban_kostol);
+        iban_kostol.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clip = ClipData.newPlainText("iban", "SK8709000000000074337685");
@@ -110,13 +109,27 @@ public class Kontakt extends FirebaseMain {
             }
         });
 
-        RelativeLayout bic = findViewById(R.id.bic);
-        bic.setOnClickListener(new View.OnClickListener() {
+        RelativeLayout bic_kostol = findViewById(R.id.bic_kostol);
+        bic_kostol.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clip = ClipData.newPlainText("bic", "GIBASKBX");
                 clipboard.setPrimaryClip(clip);
                 toastMessage.setText("BIC bol skopírovaný.");
+                Toast myToast=new Toast(getApplicationContext());
+                myToast.setDuration(Toast.LENGTH_LONG);
+                myToast.setView(toastLayout);
+                myToast.show();
+            }
+        });
+
+        RelativeLayout iban_knaz = findViewById(R.id.iban_knaz);
+        iban_knaz.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("iban", "SK3402000000003638268157");
+                clipboard.setPrimaryClip(clip);
+                toastMessage.setText("IBAN bol skopírovaný.");
                 Toast myToast=new Toast(getApplicationContext());
                 myToast.setDuration(Toast.LENGTH_LONG);
                 myToast.setView(toastLayout);

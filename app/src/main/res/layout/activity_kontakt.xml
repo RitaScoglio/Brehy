@@ -112,13 +112,13 @@
                 android:src="@drawable/ic_email" />
         </RelativeLayout>
 
-        <!-- Bankové spojenie-->
+        <!-- Milodar na kostol-->
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="Bankové spojenie"
+            android:text="Milodar na kostol"
             android:textColor="@color/brown_dark"
             android:textSize="20sp" />
         <!-- IBAN -->
@@ -128,17 +128,17 @@
             android:layout_marginBottom="8dp"
             android:background="@drawable/border"
             android:padding="8dp"
-            android:id="@+id/iban">
+            android:id="@+id/iban_kostol">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toStartOf="@+id/ic_iban"
-                android:layout_toLeftOf="@+id/ic_iban"
-                android:text="@string/iban" />
+                android:layout_toStartOf="@+id/ic_iban_kostol"
+                android:layout_toLeftOf="@+id/ic_iban_kostol"
+                android:text="@string/iban_kostol" />
 
             <ImageView
-                android:id="@+id/ic_iban"
+                android:id="@+id/ic_iban_kostol"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_alignParentEnd="true"
@@ -154,17 +154,17 @@
             android:layout_marginBottom="8dp"
             android:background="@drawable/border"
             android:padding="8dp"
-            android:id="@+id/bic">
+            android:id="@+id/bic_kostol">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toStartOf="@+id/ic_bic"
-                android:layout_toLeftOf="@+id/ic_bic"
-                android:text="@string/bic" />
+                android:layout_toStartOf="@+id/ic_bic_kostol"
+                android:layout_toLeftOf="@+id/ic_bic_kostol"
+                android:text="@string/bic_kostol" />
 
             <ImageView
-                android:id="@+id/ic_bic"
+                android:id="@+id/ic_bic_kostol"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_alignParentEnd="true"
@@ -173,12 +173,43 @@
                 android:src="@drawable/ic_copy" />
         </RelativeLayout>
 
-        <!-- QR code -->
-        <ImageView
+        <!-- Bankové spojenie-->
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:src="@drawable/qr" />
+            android:text="Milodar pre kňaza za odslúženú omšu"
+            android:textColor="@color/brown_dark"
+            android:textSize="20sp" />
+        <!-- IBAN -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/border_dark"
+            android:padding="8dp"
+            android:id="@+id/iban_knaz">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@+id/ic_iban_knaz"
+                android:layout_toLeftOf="@+id/ic_iban_knaz"
+                android:textColor="@color/brown_superlight"
+                android:text="@string/iban_knaz" />
+
+            <ImageView
+                android:id="@+id/ic_iban_knaz"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:contentDescription="IBAN"
+                android:src="@drawable/ic_copy_light" />
+        </RelativeLayout>
+
+
     </LinearLayout>
 
 

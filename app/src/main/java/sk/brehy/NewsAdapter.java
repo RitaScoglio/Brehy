@@ -1,21 +1,15 @@
 package sk.brehy;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
-import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -48,8 +42,12 @@ public class NewsAdapter extends ArrayAdapter<News> {
         date.setText(current.getDate());
 
         WebView content_list = listItemView.findViewById(R.id.content_list);
-        content_list.loadData(current.getContent_list(), "text/html", "utf-8");
         content_list.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.brown_superlight));
+        content_list.loadData(current.getContent_list(), "text/html; charset=utf-8", "utf-8");
+        WebSettings webSettings = content_list.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setDefaultTextEncodingName("utf-8");
 
         /*content_list.setOnTouchListener(new View.OnTouchListener() {
             @SuppressLint("ClickableViewAccessibility")
@@ -70,15 +68,5 @@ public class NewsAdapter extends ArrayAdapter<News> {
         return listItemView;
     }
 
-    boolean isNetworkAvailable() {
-        ConnectivityManager manager =
-                (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-        boolean isAvailable = false;
-        if (networkInfo != null && networkInfo.isConnected()) {
-            // Network is present and connected
-            isAvailable = true;
-        }
-        return isAvailable;
-    }
+
 }

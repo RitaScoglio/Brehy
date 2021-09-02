@@ -48,7 +48,7 @@ public class Aktuality extends FirebaseMain {
                         intent = new Intent(getApplicationContext(), Webstranka.class);
                         break;
                     case R.id.menu_lektori:
-                        intent = new Intent(getApplicationContext(), Lektori.class);
+                        intent = new Intent(getApplicationContext(), LektoriLogin.class);
                         break;
                     case R.id.menu_kontakt:
                         intent = new Intent(getApplicationContext(), Kontakt.class);

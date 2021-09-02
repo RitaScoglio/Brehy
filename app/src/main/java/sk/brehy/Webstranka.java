@@ -1,7 +1,6 @@
 package sk.brehy;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -31,7 +30,7 @@ public class Webstranka extends FirebaseMain {
                         intent = new Intent(getApplicationContext(), Webstranka.class);
                         break;
                     case R.id.menu_lektori:
-                        intent = new Intent(getApplicationContext(), Lektori.class);
+                        intent = new Intent(getApplicationContext(), LektoriLogin.class);
                         break;
                     case R.id.menu_kontakt:
                         intent = new Intent(getApplicationContext(), Kontakt.class);

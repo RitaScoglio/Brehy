@@ -12,12 +12,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Brehy">
         <activity
+            android:name=".LektoriLogin"
+            android:exported="true" />
+        <activity
             android:name=".Webstranka"
             android:exported="true" />
         <activity android:name=".AktualityContent" />
         <activity
             android:name=".Uvod"
-            android:configChanges="orientation|screenSize">
+            android:configChanges="orientation|screenSize"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -4,12 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.TextView;
+
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
@@ -39,7 +40,7 @@ public class AktualityContent extends FirebaseMain {
                         intent = new Intent(getApplicationContext(), Webstranka.class);
                         break;
                     case R.id.menu_lektori:
-                        intent = new Intent(getApplicationContext(), Lektori.class);
+                        intent = new Intent(getApplicationContext(), LektoriLogin.class);
                         break;
                     case R.id.menu_kontakt:
                         intent = new Intent(getApplicationContext(), Kontakt.class);
@@ -115,9 +116,17 @@ public class AktualityContent extends FirebaseMain {
         WebView content = findViewById(R.id.content);
         content.setBackgroundColor(ContextCompat.getColor(this, R.color.brown_superlight));
         if(result != null){
-            content.loadData(result, "text/html", "utf-8");
+            content.loadData(result, "text/html; charset=utf-8", "utf-8");
+            WebSettings webSettings = content.getSettings();
+            webSettings.setJavaScriptEnabled(true);
+            webSettings.setDomStorageEnabled(true);
+            webSettings.setDefaultTextEncodingName("utf-8");
         } else {
-            content.loadData(openedAktualityContent.getContent(), "text/html", "utf-8");
+            content.loadData(openedAktualityContent.getContent(), "text/html", "windows-1250");
+            WebSettings webSettings = content.getSettings();
+            webSettings.setJavaScriptEnabled(true);
+            webSettings.setDomStorageEnabled(true);
+            webSettings.setDefaultTextEncodingName("utf-8");
         }
     }
 

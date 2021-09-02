@@ -5,6 +5,34 @@
     <string name="email">fara.brehy@gmail.com</string>
     <string name="ico">319 39 287</string>
     <string name="dic">2021111917</string>
-    <string name="iban">IBAN:\nSK87 0900 0000 0000 7433 7685</string>
-    <string name="bic">BIC:\nGIBASKBX</string>
+    <string name="iban_kostol">IBAN:\nSK87 0900 0000 0000 7433 7685</string>
+    <string name="bic_kostol">BIC:\nGIBASKBX</string>
+    <string name="iban_knaz">IBAN:\nSK34 0200 0000 0036 3826 8157</string>
+
+    <string name="material_calendar_monday">Po</string>
+    <string name="material_calendar_tuesday">Ut</string>
+    <string name="material_calendar_wednesday">St</string>
+    <string name="material_calendar_thursday">Št</string>
+    <string name="material_calendar_friday">Pi</string>
+    <string name="material_calendar_saturday">So</string>
+    <string name="material_calendar_sunday">Ne</string>
+
+    <array name="material_calendar_months_array">
+        <item>Január</item>
+        <item>Február</item>
+        <item>Marec</item>
+        <item>Apríl</item>
+        <item>Máj</item>
+        <item>Jún</item>
+        <item>Júl</item>
+        <item>August</item>
+        <item>September</item>
+        <item>Október</item>
+        <item>November</item>
+        <item>December</item>
+    </array>
+
+    <string name="material_calendar_today_button">Dnes</string>
+    <string name="material_calendar_positive_button">OK</string>
+    <string name="material_calendar_negative_button">Zavrieť</string>
 </resources>

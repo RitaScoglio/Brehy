@@ -1,7 +1,6 @@
 package sk.brehy;
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.DisplayMetrics;
@@ -16,7 +15,7 @@ import java.util.ArrayList;
 
 public class FirebaseMain extends AppCompatActivity {
 
-    static DatabaseReference oznamy_reference, aktuality_reference;
+    static DatabaseReference oznamy_reference, aktuality_reference, kalendar_reference;
     static News openedAktualityContent;
 
     void setFirebase() {
@@ -27,6 +26,8 @@ public class FirebaseMain extends AppCompatActivity {
             oznamy_reference.keepSynced(true);
             aktuality_reference = database.getReference("aktuality");
             aktuality_reference.keepSynced(true);
+            kalendar_reference = database.getReference("kalendar");
+            kalendar_reference.keepSynced(true);
         }
     }
 
