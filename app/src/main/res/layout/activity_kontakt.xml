@@ -147,33 +147,7 @@
                 android:src="@drawable/ic_copy" />
         </RelativeLayout>
 
-        <!-- BIC -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/border"
-            android:padding="8dp"
-            android:id="@+id/bic_kostol">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_toStartOf="@+id/ic_bic_kostol"
-                android:layout_toLeftOf="@+id/ic_bic_kostol"
-                android:text="@string/bic_kostol" />
-
-            <ImageView
-                android:id="@+id/ic_bic_kostol"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:contentDescription="BIC"
-                android:src="@drawable/ic_copy" />
-        </RelativeLayout>
-
-        <!-- Bankové spojenie-->
+        <!-- Milodar pre knaza -->
 
         <TextView
             android:layout_width="match_parent"

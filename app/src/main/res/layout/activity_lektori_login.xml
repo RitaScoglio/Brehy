@@ -38,7 +38,9 @@
         android:id="@+id/loginEdit"
         android:autofillHints="heslo"
         android:inputType="textPassword"
-        android:hint="Heslo"/>
+        android:hint="Heslo"
+        android:textColor="@color/brown_superdark"
+        android:background="@drawable/custom_edit_text"/>
 
     <Button
         android:layout_width="match_parent"

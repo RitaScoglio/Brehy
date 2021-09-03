@@ -109,20 +109,6 @@ public class Kontakt extends FirebaseMain {
             }
         });
 
-        RelativeLayout bic_kostol = findViewById(R.id.bic_kostol);
-        bic_kostol.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("bic", "GIBASKBX");
-                clipboard.setPrimaryClip(clip);
-                toastMessage.setText("BIC bol skopírovaný.");
-                Toast myToast=new Toast(getApplicationContext());
-                myToast.setDuration(Toast.LENGTH_LONG);
-                myToast.setView(toastLayout);
-                myToast.show();
-            }
-        });
-
         RelativeLayout iban_knaz = findViewById(R.id.iban_knaz);
         iban_knaz.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {

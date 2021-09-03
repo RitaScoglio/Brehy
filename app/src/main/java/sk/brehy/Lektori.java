@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.applandeo.materialcalendarview.CalendarView;
 import com.applandeo.materialcalendarview.EventDay;
+import com.applandeo.materialcalendarview.exceptions.OutOfDateRangeException;
 import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener;
 import com.applandeo.materialcalendarview.listeners.OnDayClickListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -187,24 +188,7 @@ public class Lektori extends FirebaseMain {
                         }
                     }
                 }
-                List<EventDay> events = new ArrayList<>();
-                for (Map.Entry<String, ArrayList<People>> entry : list.entrySet()) {
-                    String[] key = entry.getKey().split("-");
-                    int value = entry.getValue().size();
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.set(Integer.parseInt(key[0]), Integer.parseInt(key[1]) - 1, Integer.parseInt(key[2]));
-                    TextDrawable d = TextDrawable.builder()
-                            .beginConfig()
-                            .textColor(getResources().getColor(R.color.brown_superlight))
-                            .bold()
-                            .endConfig()
-                            .buildRound(Integer.toString(value), getResources().getColor(R.color.brown_dark));
-
-                    events.add(new EventDay(calendar, d));
-                }
-                calendarView.setEvents(events);
-                Calendar a = calendarView.getSelectedDate();
-                writeToListView(a);
+                refreshScreenData();
             }
 
             @Override
@@ -212,6 +196,27 @@ public class Lektori extends FirebaseMain {
                 Log.d("APP_data", "Failed to read value.", error.toException());
             }
         });
+    }
+
+    private void refreshScreenData() {
+        List<EventDay> events = new ArrayList<>();
+        for (Map.Entry<String, ArrayList<People>> entry : list.entrySet()) {
+            String[] key = entry.getKey().split("-");
+            int value = entry.getValue().size();
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Integer.parseInt(key[0]), Integer.parseInt(key[1]) - 1, Integer.parseInt(key[2]));
+            TextDrawable d = TextDrawable.builder()
+                    .beginConfig()
+                    .textColor(getResources().getColor(R.color.brown_superlight))
+                    .bold()
+                    .endConfig()
+                    .buildRound(Integer.toString(value), getResources().getColor(R.color.brown_dark));
+
+            events.add(new EventDay(calendar, d));
+        }
+        calendarView.setEvents(events);
+        Calendar a = calendarView.getSelectedDate();
+        writeToListView(a);
     }
 
     private void writeToListView(Calendar calendar) {
@@ -236,22 +241,53 @@ public class Lektori extends FirebaseMain {
     public void openDialog(String num, String date, String name, String headText) {
         final Dialog dialog = new Dialog(Lektori.this);
         dialog.setContentView(R.layout.lektor_dialog);
+        String[] keys = date.split("-");
+
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
         lp.copyFrom(dialog.getWindow().getAttributes());
         lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+
         TextView head = dialog.findViewById(R.id.head);
         head.setText(headText);
+
+        TextView datum = dialog.findViewById(R.id.date);
+        String nazov = keys[2] + ". "+getResources().getStringArray(R.array.material_calendar_months_array)[Integer.parseInt(keys[1])-1] + " "+ keys[0];
+        datum.setText(nazov);
+
         TextView number = dialog.findViewById(R.id.number);
         number.setText("Poradie: " + num);
+
         EditText edit = (EditText) dialog.findViewById(R.id.name);
         edit.setText(name);
+
         Button positive = (Button) dialog.findViewById(R.id.positive);
         positive.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 String name = edit.getText().toString();
+
                 if (!name.equals("")) {
-                    String[] keys = date.split("-");
                     kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).child(String.valueOf(num)).setValue(name);
+                } else {
+                    ArrayList<People> people = list.get(date);
+                    if (people != null) {
+                        if (people.size() > (Integer.parseInt(num) - 1)) {
+                            kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).removeValue();
+                            people.remove(Integer.parseInt(num) - 1);
+                            if (people.isEmpty())
+                                list.remove(date);
+                            else {
+                                int n = 1;
+                                ArrayList<People> newPeople = new ArrayList<>();
+                                for (People human : people) {
+                                    newPeople.add(new People(String.valueOf(n), human.getName()));
+                                    kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).child(String.valueOf(n)).setValue(human.getName());
+                                    n++;
+                                }
+                                list.put(date, newPeople);
+                            }
+                            refreshScreenData();
+                        }
+                    }
                 }
                 dialog.dismiss();
             }

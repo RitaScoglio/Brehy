@@ -19,6 +19,7 @@
         android:id="@+id/head"
         android:textStyle="bold"
         android:textSize="20sp"
+        android:text="@string/string"
         android:textColor="@color/brown_dark"
         android:gravity="center"/>
     </LinearLayout>
@@ -26,9 +27,20 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/number"
-        android:paddingBottom="12dp"
+        android:id="@+id/date"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingBottom="6dp"
+        android:text="@string/string"
         android:paddingTop="12dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/number"
+        android:text="@string/string"
+        android:paddingBottom="12dp"
+        android:paddingTop="6dp"/>
 
     <EditText
         android:layout_width="match_parent"
@@ -37,8 +49,9 @@
         android:hint="Meno lektora"
         android:autofillHints="Meno lektora"
         android:inputType="text"
-        android:paddingBottom="8dp"
-        android:paddingTop="8dp"/>
+        android:textColor="@color/brown_superdark"
+        android:padding="8dp"
+        android:background="@drawable/custom_edit_text"/>
 
     <LinearLayout
         android:layout_width="match_parent"

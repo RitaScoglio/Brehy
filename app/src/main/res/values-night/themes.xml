@@ -14,5 +14,6 @@
         <!-- Customize your theme here. -->
         <item name="android:textColor">@color/brown_superdark</item>
         <item name="android:windowBackground">@color/brown_superlight</item>
+        <item name="android:textColorHint">@color/brown_semilight</item>
     </style>
 </resources>
