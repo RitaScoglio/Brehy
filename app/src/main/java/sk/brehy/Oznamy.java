@@ -3,11 +3,15 @@ package sk.brehy;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.MenuItem;
+import android.view.WindowManager;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -56,7 +60,7 @@ public class Oznamy extends FirebaseMain {
     }
 
     private WebView WebView;
-    final String mime = "text/html";
+    final String mime = "text/html; charset=utf-8";
     final String encoding = "utf-8";
 
     @Override
@@ -84,7 +88,7 @@ public class Oznamy extends FirebaseMain {
                 for (DataSnapshot child : children) {
                     html = (String) child.getValue();
                 }
-                WebView.loadData(html, mime, encoding);
+                loadWebView(html);
             }
 
             @Override
@@ -99,11 +103,11 @@ public class Oznamy extends FirebaseMain {
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
+                if (!dataSnapshot.getKey().equals(key)) {
                     oznamy_reference.removeValue();
                     oznamy_reference.child(key).setValue(value);
                 }
-                WebView.loadData(value, mime, encoding);
+               loadWebView(value);
             }
 
             @Override
@@ -112,6 +116,19 @@ public class Oznamy extends FirebaseMain {
             }
         });
 
+    }
+
+    void loadWebView(String value){
+        WebView.loadData(value, mime, encoding);
+        WebSettings webSettings = WebView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setDefaultTextEncodingName("utf-8");
+        /*webSettings.setMinimumFontSize(50);
+        webSettings.setLoadWithOverviewMode(true);
+        webSettings.setUseWideViewPort(true);
+        webSettings.setBuiltInZoomControls(true);
+        webSettings.setDisplayZoomControls(false);*/
     }
 
     private class GetData extends AsyncTask<Void, Void, String> {
@@ -128,13 +145,16 @@ public class Oznamy extends FirebaseMain {
                     if (e.tagName().equals("p")) {
                         if (e.attributes().isEmpty())
                             e.addClass("divider");
-                        else
+                        else if (e.attributes().get("align").equals("center")) {
+                            nedela = e.text().replaceAll("\\.", "");
+                            e.addClass("header");
+                        } else
                             e.clearAttributes().addClass("basic");
                     } else if (e.tagName().equals("h2")) {
                         nedela = e.text().replaceAll("\\.", "");
                     }
                 }
-                //String html = ele.outerHtml();
+                String htmlPage = ele.outerHtml().replaceAll("h2", "p style=\"font-weight:bold;\"");
                 String html = "<html> <style>" +
                         "a, strong {" +
                         "  overflow-wrap: break-word;" +
@@ -153,8 +173,16 @@ public class Oznamy extends FirebaseMain {
                         "}" +
                         ".divider {font-size: 50%;" +
                         "}" +
+                        ".header {display: block;" +
+                        "  font-size: 1.5em" +
+                        "  margin-top: 0.83em;" +
+                        "  margin-bottom: 0.83em;" +
+                        "  margin-left: 0;" +
+                        "  margin-right: 0;" +
+                        "  font-weight: bold;" +
+                        "}" +
                         "</style><body>" +
-                        ele.outerHtml() + "</body></html>";
+                        htmlPage + "</body></html>";
                 return html;
             } catch (Exception ignored) {
             }
