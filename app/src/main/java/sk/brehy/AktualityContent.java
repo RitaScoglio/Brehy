@@ -75,6 +75,12 @@ public class AktualityContent extends FirebaseMain {
             try {
                 Document doc = Jsoup.connect(openedAktualityContent.getHref()).get();
                 String html = doc.select("div.field-item.even").html();
+                int index = html.indexOf("color:#");
+                if (index != -1) {
+                    String sub = html.substring(index, index + 14);
+                    html = html.replaceAll(sub, "");
+                }
+
                 String content = "<html> <style>" +
                                 "a, strong {" +
                                 "  overflow-wrap: break-word;" +

@@ -133,13 +133,13 @@ public class Aktuality extends FirebaseMain {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.exists()) {
                     aktuality_reference.child(String.valueOf(n.getNode())).child("title").setValue(n.getTitle());
-                    aktuality_reference.child(String.valueOf(n.getNode())).child("href").setValue("https://farabrehy.sk" + n.getHref());
+                    aktuality_reference.child(String.valueOf(n.getNode())).child("href").setValue(n.getHref());
                     aktuality_reference.child(String.valueOf(n.getNode())).child("date").setValue(n.getDate());
                     aktuality_reference.child(String.valueOf(n.getNode())).child("content-list").setValue(n.getContent_list());
                 } else if (!dataSnapshot.child("title").exists()) {
                     aktuality_reference.child(String.valueOf(n.getNode())).child("title").setValue(n.getTitle());
                 } else if (!dataSnapshot.child("href").exists()) {
-                    aktuality_reference.child(String.valueOf(n.getNode())).child("href").setValue("https://farabrehy.sk" + n.getHref());
+                    aktuality_reference.child(String.valueOf(n.getNode())).child("href").setValue(n.getHref());
                 } else if (!dataSnapshot.child("date").exists()) {
                     aktuality_reference.child(String.valueOf(n.getNode())).child("date").setValue(n.getDate());
                 } else if (!dataSnapshot.child("content-list").exists()) {
@@ -171,7 +171,11 @@ public class Aktuality extends FirebaseMain {
                         String date = e.getElementsByClass("submitted").text().replace("Pridané používateľom admin dňa ", "");
                         String title = e.getElementsByClass("title").text();
                         String content_list = e.getElementsByClass("field-item even").html();
-
+                        int index = content_list.indexOf("color:#");
+                        if (index != -1) {
+                            String sub = content_list.substring(index, index + 14);
+                            content_list = content_list.replaceAll(sub, "");
+                        }
 
                         content_list = "<html><style>" +
                                 "a, strong {" +
