@@ -3,6 +3,7 @@ package sk.brehy;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -23,16 +24,21 @@ import androidx.annotation.NonNull;
 
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.applandeo.materialcalendarview.CalendarView;
+import com.applandeo.materialcalendarview.DatePicker;
 import com.applandeo.materialcalendarview.EventDay;
+import com.applandeo.materialcalendarview.builders.DatePickerBuilder;
 import com.applandeo.materialcalendarview.exceptions.OutOfDateRangeException;
 import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener;
 import com.applandeo.materialcalendarview.listeners.OnDayClickListener;
+import com.applandeo.materialcalendarview.listeners.OnSelectDateListener;
+import com.applandeo.materialcalendarview.utils.CalendarProperties;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -78,6 +84,8 @@ public class Lektori extends FirebaseMain {
     FloatingActionButton floatingActionButton;
     ListView listView;
     HashMap<String, ArrayList<People>> list = new HashMap<>();
+    CalendarProperties p;
+    Field f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +95,25 @@ public class Lektori extends FirebaseMain {
         setBottomMenu();
 
         calendarView = (CalendarView) findViewById(R.id.calendarView);
+        f = null;
+        try {
+            f = CalendarView.class.getDeclaredField("mCalendarProperties");
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        assert f != null;
+        f.setAccessible(true);
+        p = null;
+        try {
+            p = (CalendarProperties) f.get(calendarView);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        assert p != null;
+        p.setSelectionColor(getResources().getColor(R.color.red));
+        calendarView.requestLayout();
+
+
         calendarView.setOnPreviousPageChangeListener(new OnCalendarPageChangeListener() {
             @Override
             public void onChange() {
@@ -102,7 +129,18 @@ public class Lektori extends FirebaseMain {
         calendarView.setOnDayClickListener(new OnDayClickListener() {
             @Override
             public void onDayClick(EventDay eventDay) {
-                writeToListView(eventDay.getCalendar());
+                Calendar today = Calendar.getInstance();
+                Calendar clickedDay = eventDay.getCalendar();
+                boolean sameDay = today.get(Calendar.DAY_OF_YEAR) == clickedDay.get(Calendar.DAY_OF_YEAR) &&
+                        today.get(Calendar.YEAR) == clickedDay.get(Calendar.YEAR);
+                if (!sameDay) {
+                    p.setSelectionColor(getResources().getColor(R.color.brown_dark));
+                    calendarView.requestLayout();
+                } else {
+                    p.setSelectionColor(getResources().getColor(R.color.red));
+                    calendarView.requestLayout();
+                }
+                writeToListView(clickedDay);
             }
         });
         highlightedWeekends();

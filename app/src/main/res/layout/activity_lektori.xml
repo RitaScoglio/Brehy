@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:abbreviationsBarColor="@color/brown_superlight"
-        app:abbreviationsLabelsColor="@color/brown_semilight"
+        app:abbreviationsLabelsColor="@color/brown"
         app:anotherMonthsDaysLabelsColor="@color/brown_light"
         app:daysLabelsColor="@color/brown_superdark"
         app:disabledDaysLabelsColor="@color/brown_light"
@@ -36,7 +36,7 @@
         app:selectionColor="@color/brown_dark"
         app:selectionLabelColor="@color/brown_superlight"
         app:swipeEnabled="true"
-        app:todayLabelColor="@color/brown"
+        app:todayLabelColor="@color/red"
         app:type="one_day_picker" />
 
     <ListView
