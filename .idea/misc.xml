@@ -37,10 +37,20 @@
         <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/news_list.xml" value="0.20516304347826086" />
         <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/people_list.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Dominika/Apps/AndroidStudioProjects/Brehy/app/src/main/res/layout/toast.xml" value="0.20516304347826086" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/drawable/border.xml" value="0.2203125" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/drawable/border_dark.xml" value="0.2203125" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/drawable/dalej_background.xml" value="0.2203125" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/drawable/ic_right_arrow.xml" value="0.2203125" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/drawable/network_background.xml" value="0.2203125" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/drawable/news_background.xml" value="0.2203125" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/layout/activity_aktuality.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/layout/activity_kontakt.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/layout/network_toast.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/Dominika_Mihalova/StudioProjects/Brehy/app/src/main/res/layout/news_list.xml" value="0.46445497630331756" />
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

@@ -76,9 +76,10 @@ public class AktualityContent extends FirebaseMain {
                 Document doc = Jsoup.connect(openedAktualityContent.getHref()).get();
                 String html = doc.select("div.field-item.even").html();
                 int index = html.indexOf("color:#");
-                if (index != -1) {
+                while (index != -1) {
                     String sub = html.substring(index, index + 14);
                     html = html.replaceAll(sub, "");
+                    index = html.indexOf("color:#");
                 }
 
                 String content = "<html> <style>" +
@@ -93,9 +94,10 @@ public class AktualityContent extends FirebaseMain {
                                 "  -webkit-hyphens: auto;" +
                                 "  hyphens: auto;" +
                                 "}" +
-                                "p {margin: 0px;" +
-                                "padding-bottom: 8px;" +
+                                "p {margin: 0px !important;" +
+                                "padding-bottom: 8px !important;" +
                                 "text-align: justify;" +
+                                "font-size: 16px !important;" +
                                 "}" +
                                 "</style><body>" + addToSrc(html)+ "</body></html>";
                 return content;

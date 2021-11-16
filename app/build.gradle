@@ -4,14 +4,14 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "sk.brehy"
         minSdkVersion 16
-        targetSdkVersion 30
-        versionCode 6
+        targetSdkVersion 31
+        versionCode 7
         versionName "1.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

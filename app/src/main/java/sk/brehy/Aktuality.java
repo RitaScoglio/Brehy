@@ -172,9 +172,10 @@ public class Aktuality extends FirebaseMain {
                         String title = e.getElementsByClass("title").text();
                         String content_list = e.getElementsByClass("field-item even").html();
                         int index = content_list.indexOf("color:#");
-                        if (index != -1) {
+                        while (index != -1) {
                             String sub = content_list.substring(index, index + 14);
                             content_list = content_list.replaceAll(sub, "");
+                            index = content_list.indexOf("color:#");
                         }
 
                         content_list = "<html><style>" +
@@ -190,9 +191,10 @@ public class Aktuality extends FirebaseMain {
                                 "  hyphens: auto;" +
                                 "}" +
                                 "p {" +
-                                "margin: 0px;" +
-                                "padding-bottom: 8px;" +
+                                "margin: 0px !important;" +
+                                "padding-bottom: 8px !important;" +
                                 "text-align: justify;" +
+                                "font-size: 16px !important;" +
                                 "}" +
                                 "</style><body>" + addToSrc(content_list) + "</body></html>";
 
