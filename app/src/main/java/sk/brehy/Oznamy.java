@@ -103,7 +103,7 @@ public class Oznamy extends FirebaseMain {
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.getKey().equals(key)) {
+                if (!dataSnapshot.getKey().equals(key) || dataSnapshot.getValue() == null) {
                     oznamy_reference.removeValue();
                     oznamy_reference.child(key).setValue(value);
                 }
