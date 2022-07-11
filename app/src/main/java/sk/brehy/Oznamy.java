@@ -138,7 +138,7 @@ public class Oznamy extends FirebaseMain {
         @Override
         protected String doInBackground(Void... params) {
             try {
-                Document doc = Jsoup.connect("https://farabrehy.sk/farske-oznamy").get();
+                Document doc = Jsoup.connect("https://farabrehy.sk/oznamy").get();
                 Element ele = doc.select("div.field-item.even").first();
                 Elements child = ele.children();
                 for (Element e : child) {
@@ -193,7 +193,8 @@ public class Oznamy extends FirebaseMain {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            writeToDatabase(nedela, result);
+            if (nedela != null)
+                writeToDatabase(nedela, result);
         }
     }
 
