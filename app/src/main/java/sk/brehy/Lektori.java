@@ -3,7 +3,6 @@ package sk.brehy;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -24,13 +23,9 @@ import androidx.annotation.NonNull;
 
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.applandeo.materialcalendarview.CalendarView;
-import com.applandeo.materialcalendarview.DatePicker;
 import com.applandeo.materialcalendarview.EventDay;
-import com.applandeo.materialcalendarview.builders.DatePickerBuilder;
-import com.applandeo.materialcalendarview.exceptions.OutOfDateRangeException;
 import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener;
 import com.applandeo.materialcalendarview.listeners.OnDayClickListener;
-import com.applandeo.materialcalendarview.listeners.OnSelectDateListener;
 import com.applandeo.materialcalendarview.utils.CalendarProperties;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -83,7 +78,6 @@ public class Lektori extends FirebaseMain {
     CalendarView calendarView;
     FloatingActionButton floatingActionButton;
     ListView listView;
-    HashMap<String, ArrayList<People>> list = new HashMap<>();
     CalendarProperties p;
     Field f;
 
@@ -91,8 +85,15 @@ public class Lektori extends FirebaseMain {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lektori);
-        getSavedData();
         setBottomMenu();
+
+        //delete 3 months old data
+        int currentMonth = Calendar.getInstance().get(Calendar.MONTH);
+        int deleteMonth = currentMonth - 3;
+        if (deleteMonth > 0)
+            kalendar_reference.child(String.valueOf(Calendar.getInstance().get(Calendar.YEAR))).child(String.valueOf(deleteMonth+1)).removeValue();
+        else
+            kalendar_reference.child(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)-1)).child(String.valueOf(deleteMonth+13)).removeValue();
 
         calendarView = (CalendarView) findViewById(R.id.calendarView);
         f = null;
@@ -113,16 +114,17 @@ public class Lektori extends FirebaseMain {
         p.setSelectionColor(getResources().getColor(R.color.red));
         calendarView.requestLayout();
 
-
         calendarView.setOnPreviousPageChangeListener(new OnCalendarPageChangeListener() {
             @Override
             public void onChange() {
+                refreshScreenData();
                 highlightedWeekends();
             }
         });
         calendarView.setOnForwardPageChangeListener(new OnCalendarPageChangeListener() {
             @Override
             public void onChange() {
+                refreshScreenData();
                 highlightedWeekends();
             }
         });
@@ -154,6 +156,8 @@ public class Lektori extends FirebaseMain {
         });
 
         listView = findViewById(R.id.listview_kalendar);
+        refreshScreenData();
+        getSavedData();
 
         /*OnSelectDateListener listener = new OnSelectDateListener() {
             @Override
@@ -193,7 +197,7 @@ public class Lektori extends FirebaseMain {
 
     private void writeToDatabase(Calendar cal) {
         String date = cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DAY_OF_MONTH);
-        ArrayList<People> current = list.get(date);
+        ArrayList<People> current = lektori_list.get(date);
         int num;
         if (current == null)
             num = 1;
@@ -222,7 +226,7 @@ public class Lektori extends FirebaseMain {
                                 all.add(new People(human.getKey(), (String) human.getValue()));
                             }
                             String date = y + "-" + m + "-" + d;
-                            list.put(date, all);
+                            lektori_list.put(date, all);
                         }
                     }
                 }
@@ -238,7 +242,7 @@ public class Lektori extends FirebaseMain {
 
     private void refreshScreenData() {
         List<EventDay> events = new ArrayList<>();
-        for (Map.Entry<String, ArrayList<People>> entry : list.entrySet()) {
+        for (Map.Entry<String, ArrayList<People>> entry : lektori_list.entrySet()) {
             String[] key = entry.getKey().split("-");
             int value = entry.getValue().size();
             Calendar calendar = Calendar.getInstance();
@@ -259,7 +263,7 @@ public class Lektori extends FirebaseMain {
 
     private void writeToListView(Calendar calendar) {
         String date = calendar.get(Calendar.YEAR) + "-" + (calendar.get(Calendar.MONTH) + 1) + "-" + calendar.get(Calendar.DAY_OF_MONTH);
-        ArrayList<People> current = list.get(date);
+        ArrayList<People> current = lektori_list.get(date);
         if (current != null) {
             PeopleAdapter adapter = new PeopleAdapter(this, current);
             listView.setAdapter(adapter);
@@ -289,7 +293,7 @@ public class Lektori extends FirebaseMain {
         head.setText(headText);
 
         TextView datum = dialog.findViewById(R.id.date);
-        String nazov = keys[2] + ". "+getResources().getStringArray(R.array.material_calendar_months_array)[Integer.parseInt(keys[1])-1] + " "+ keys[0];
+        String nazov = keys[2] + ". " + getResources().getStringArray(R.array.material_calendar_months_array)[Integer.parseInt(keys[1]) - 1] + " " + keys[0];
         datum.setText(nazov);
 
         TextView number = dialog.findViewById(R.id.number);
@@ -299,36 +303,34 @@ public class Lektori extends FirebaseMain {
         edit.setText(name);
 
         Button positive = (Button) dialog.findViewById(R.id.positive);
-        positive.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                String name = edit.getText().toString();
+        positive.setOnClickListener(v -> {
+            String name1 = edit.getText().toString();
 
-                if (!name.equals("")) {
-                    kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).child(String.valueOf(num)).setValue(name);
-                } else {
-                    ArrayList<People> people = list.get(date);
-                    if (people != null) {
-                        if (people.size() > (Integer.parseInt(num) - 1)) {
-                            kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).removeValue();
-                            people.remove(Integer.parseInt(num) - 1);
-                            if (people.isEmpty())
-                                list.remove(date);
-                            else {
-                                int n = 1;
-                                ArrayList<People> newPeople = new ArrayList<>();
-                                for (People human : people) {
-                                    newPeople.add(new People(String.valueOf(n), human.getName()));
-                                    kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).child(String.valueOf(n)).setValue(human.getName());
-                                    n++;
-                                }
-                                list.put(date, newPeople);
+            if (!name1.equals("")) {
+                kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).child(String.valueOf(num)).setValue(name1);
+            } else {
+                ArrayList<People> people = lektori_list.get(date);
+                if (people != null) {
+                    if (people.size() > (Integer.parseInt(num) - 1)) {
+                        kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).removeValue();
+                        people.remove(Integer.parseInt(num) - 1);
+                        if (people.isEmpty())
+                            lektori_list.remove(date);
+                        else {
+                            int n = 1;
+                            ArrayList<People> newPeople = new ArrayList<>();
+                            for (People human : people) {
+                                newPeople.add(new People(String.valueOf(n), human.getName()));
+                                kalendar_reference.child(keys[0]).child(keys[1]).child(keys[2]).child(String.valueOf(n)).setValue(human.getName());
+                                n++;
                             }
-                            refreshScreenData();
+                            lektori_list.put(date, newPeople);
                         }
+                        refreshScreenData();
                     }
                 }
-                dialog.dismiss();
             }
+            dialog.dismiss();
         });
         Button negative = (Button) dialog.findViewById(R.id.negative);
         negative.setOnClickListener(new View.OnClickListener() {
@@ -339,24 +341,6 @@ public class Lektori extends FirebaseMain {
 
         dialog.show();
         dialog.getWindow().setAttributes(lp);
-    }
-
-    boolean isNetworkAvailable() {
-        ConnectivityManager manager =
-                (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-        boolean isAvailable = false;
-        if (networkInfo != null && networkInfo.isConnected()) {
-            isAvailable = true;
-        } else {
-            LayoutInflater myInflator = getLayoutInflater();
-            View toastLayout = myInflator.inflate(R.layout.network_toast, (ViewGroup) findViewById(R.id.toast_layout));
-            Toast myToast = new Toast(getApplicationContext());
-            myToast.setDuration(Toast.LENGTH_LONG);
-            myToast.setView(toastLayout);
-            myToast.show();
-        }
-        return isAvailable;
     }
 
 }

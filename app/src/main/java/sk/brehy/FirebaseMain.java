@@ -5,18 +5,28 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class FirebaseMain extends AppCompatActivity {
 
     static DatabaseReference oznamy_reference, aktuality_reference, kalendar_reference;
     static News openedAktualityContent;
+
+    HashMap<String, ArrayList<People>> lektori_list = new HashMap<>();
 
     void setFirebase() {
         if(oznamy_reference == null) {
@@ -31,14 +41,52 @@ public class FirebaseMain extends AppCompatActivity {
         }
     }
 
+    private void getData(){
+        kalendar_reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Iterable<DataSnapshot> years = dataSnapshot.getChildren();
+                for (DataSnapshot year : years) {
+                    String y = year.getKey();
+                    Iterable<DataSnapshot> months = year.getChildren();
+                    for (DataSnapshot month : months) {
+                        String m = month.getKey();
+                        Iterable<DataSnapshot> days = month.getChildren();
+                        for (DataSnapshot day : days) {
+                            String d = day.getKey();
+                            Iterable<DataSnapshot> people = day.getChildren();
+                            ArrayList<People> all = new ArrayList<>();
+                            for (DataSnapshot human : people) {
+                                all.add(new People(human.getKey(), (String) human.getValue()));
+                            }
+                            String date = y + "-" + m + "-" + d;
+                            lektori_list.put(date, all);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.d("APP_data", "Failed to read value.", error.toException());
+            }
+        });
+    }
+
     boolean isNetworkAvailable() {
         ConnectivityManager manager =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = manager.getActiveNetworkInfo();
         boolean isAvailable = false;
         if (networkInfo != null && networkInfo.isConnected()) {
-            // Network is present and connected
             isAvailable = true;
+        } else {
+            LayoutInflater myInflator = getLayoutInflater();
+            View toastLayout = myInflator.inflate(R.layout.network_toast, (ViewGroup) findViewById(R.id.toast_layout));
+            Toast myToast = new Toast(getApplicationContext());
+            myToast.setDuration(Toast.LENGTH_LONG);
+            myToast.setView(toastLayout);
+            myToast.show();
         }
         return isAvailable;
     }

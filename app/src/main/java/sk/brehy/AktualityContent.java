@@ -139,20 +139,23 @@ public class AktualityContent extends FirebaseMain {
     }
 
     private void writeToDatabase(String n) {
-        DatabaseReference ref = aktuality_reference.child(String.valueOf(openedAktualityContent.getNode()));
-        ref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.child("content").exists()) {
-                    aktuality_reference.child(String.valueOf(openedAktualityContent.getNode())).child("content").setValue(n);
+        try {
+            DatabaseReference ref = aktuality_reference.child(String.valueOf(openedAktualityContent.getNode()));
+            ref.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (!dataSnapshot.child("content").exists()) {
+                        aktuality_reference.child(String.valueOf(openedAktualityContent.getNode())).child("content").setValue(n);
+                    }
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
-
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

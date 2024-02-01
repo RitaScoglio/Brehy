@@ -127,6 +127,7 @@ public class Aktuality extends FirebaseMain {
     }
 
     private void writeToDatabase(News n) {
+        try {
         DatabaseReference ref = aktuality_reference.child(String.valueOf(n.getNode()));
         ref.addValueEventListener(new ValueEventListener() {
             @Override
@@ -152,7 +153,9 @@ public class Aktuality extends FirebaseMain {
 
             }
         });
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private class GetData extends AsyncTask<Void, Void, ArrayList<News>> {

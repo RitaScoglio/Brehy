@@ -99,23 +99,26 @@ public class Oznamy extends FirebaseMain {
     }
 
     private void writeToDatabase(String key, String value) {
-        DatabaseReference ref = oznamy_reference.child(key);
-        ref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.getKey().equals(key) || dataSnapshot.getValue() == null) {
-                    oznamy_reference.removeValue();
-                    oznamy_reference.child(key).setValue(value);
+        try {
+            DatabaseReference ref = oznamy_reference.child(key);
+            ref.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (!dataSnapshot.getKey().equals(key) || dataSnapshot.getValue() == null) {
+                        oznamy_reference.removeValue();
+                        oznamy_reference.child(key).setValue(value);
+                    }
+                    loadWebView(value);
                 }
-               loadWebView(value);
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
-
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     void loadWebView(String value){
@@ -193,8 +196,7 @@ public class Oznamy extends FirebaseMain {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            if (nedela != null)
-                writeToDatabase(nedela, result);
+            writeToDatabase(nedela, result);
         }
     }
 
