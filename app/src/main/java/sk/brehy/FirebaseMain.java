@@ -41,7 +41,7 @@ public class FirebaseMain extends AppCompatActivity {
         }
     }
 
-    private void getData(){
+    void getData(){
         kalendar_reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

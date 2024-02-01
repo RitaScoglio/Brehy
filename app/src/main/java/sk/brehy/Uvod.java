@@ -66,6 +66,8 @@ public class Uvod extends FirebaseMain {
         boolean subscribed = settings.getBoolean("subscribed", false);
         if (!subscribed)
             setGoogleMessagingService();
+        Thread newThread = new Thread(this::getData);
+        newThread.start();
     }
 
     private void setGoogleMessagingService() {

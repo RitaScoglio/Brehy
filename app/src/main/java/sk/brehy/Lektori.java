@@ -87,6 +87,11 @@ public class Lektori extends FirebaseMain {
         setContentView(R.layout.activity_lektori);
         setBottomMenu();
 
+        calendarView = (CalendarView) findViewById(R.id.calendarView);
+        floatingActionButton = findViewById(R.id.floatButton);
+        listView = findViewById(R.id.listview_kalendar);
+        refreshScreenData();
+
         //delete 3 months old data
         int currentMonth = Calendar.getInstance().get(Calendar.MONTH);
         int deleteMonth = currentMonth - 3;
@@ -95,7 +100,6 @@ public class Lektori extends FirebaseMain {
         else
             kalendar_reference.child(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)-1)).child(String.valueOf(deleteMonth+13)).removeValue();
 
-        calendarView = (CalendarView) findViewById(R.id.calendarView);
         f = null;
         try {
             f = CalendarView.class.getDeclaredField("mCalendarProperties");
@@ -147,17 +151,17 @@ public class Lektori extends FirebaseMain {
         });
         highlightedWeekends();
 
-        floatingActionButton = findViewById(R.id.floatButton);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 writeToDatabase(calendarView.getSelectedDate());
             }
         });
-
-        listView = findViewById(R.id.listview_kalendar);
-        refreshScreenData();
+        
+        Thread newThread = new Thread(() -> {
         getSavedData();
+        });
+        newThread.start();
 
         /*OnSelectDateListener listener = new OnSelectDateListener() {
             @Override
