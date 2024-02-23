@@ -37,4 +37,8 @@
     <string name="material_calendar_negative_button">Zavrieť</string>
     <string name="string">String</string>
     <string name="citat_viac">Čítať viac</string>
+    <string name="download">Stiahnúť</string>
+    <string name="massInfo">Oznamy</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

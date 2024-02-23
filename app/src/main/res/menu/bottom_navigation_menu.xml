@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/menu_aktuality"
+        android:id="@+id/menu_news"
         android:icon="@drawable/ic_aktuality"
         android:title="Aktuality"/>
     <item
-        android:id="@+id/menu_oznamy"
+        android:id="@+id/menu_mass_information"
         android:icon="@drawable/ic_oznamy"
-        android:title="Oznamy"/>
+        android:title="@string/massInfo"/>
     <item
-        android:id="@+id/menu_stranka"
+        android:id="@+id/menu_webpage"
         android:icon="@drawable/ic_web"
         android:title="Webstránka"/>
     <item
-        android:id="@+id/menu_lektori"
+        android:id="@+id/menu_lector"
         android:icon="@drawable/ic_lektori"
         android:title="Lektori"/>
     <item
-        android:id="@+id/menu_kontakt"
+        android:id="@+id/menu_contact"
         android:icon="@drawable/ic_kontakt"
         android:title="Kontakt"/>
 </menu>

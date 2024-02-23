@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/news_background"
+        android:background="@drawable/toast_background"
         android:orientation="vertical"
         android:padding="8dp"
         android:id="@+id/head">
@@ -43,13 +43,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-            <TextView
+            <!--<TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/citat_viac"
                 android:textColor="@color/brown_dark"
-                android:background="@drawable/dalej_background"
-                android:padding="6dp" />
+                android:background="@drawable/next_background"
+                android:padding="6dp" />-->
 
 
     </LinearLayout>

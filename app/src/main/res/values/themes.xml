@@ -16,4 +16,9 @@
         <item name="android:windowBackground">@color/brown_superlight</item>
         <item name="android:textColorHint">@color/brown_semilight</item>
     </style>
+    <style name="BottomNavigationViewStyle">
+        <item name="itemIconTint">@color/bottom_nav_color</item>
+        <item name="itemTextColor">@color/bottom_nav_color</item>
+        <item name="itemBackground">@color/brown_light</item>
+    </style>
 </resources>

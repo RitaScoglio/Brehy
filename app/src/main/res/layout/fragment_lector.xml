@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".lector.LectorFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.applandeo.materialcalendarview.CalendarView
+            android:id="@+id/calendarView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:abbreviationsBarColor="@color/brown_superlight"
+            app:abbreviationsLabelsColor="@color/brown"
+            app:anotherMonthsDaysLabelsColor="@color/brown_light"
+            app:daysLabelsColor="@color/brown_superdark"
+            app:disabledDaysLabelsColor="@color/brown_light"
+            app:eventsEnabled="true"
+            app:forwardButtonSrc="@drawable/ic_right_arrow"
+            app:headerColor="@color/brown_superlight"
+            app:headerLabelColor="@color/brown_superdark"
+            app:highlightedDaysLabelsColor="@color/brown_semidark"
+            app:pagesColor="@color/brown_superlight"
+            app:previousButtonSrc="@drawable/ic_left_arrow"
+            app:selectionColor="@color/brown_dark"
+            app:selectionLabelColor="@color/brown_superlight"
+            app:swipeEnabled="true"
+            app:todayLabelColor="@color/red"
+            app:type="one_day_picker" />
+
+        <ListView
+            android:id="@+id/listviewCalendar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/calendarView"
+            android:divider="@color/brown_superlight" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/listviewCalendar"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_margin="6dp"
+            android:src="@drawable/ic_add"
+            app:fabSize="mini"
+            tools:ignore="ContentDescription" />
+    </RelativeLayout>
+
+</FrameLayout>

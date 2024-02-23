@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".contact.ContactFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/bottom_navigation"
+        android:layout_alignParentTop="true"
+        android:layout_margin="8dp"
+        android:orientation="vertical">
+
+    <!--adresa-->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Adresa"
+        android:textColor="@color/brown_dark"
+        android:textSize="20sp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/border"
+        android:padding="8dp"
+        android:id="@+id/adress">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@+id/ic_adress"
+            android:layout_toLeftOf="@+id/ic_adress"
+            android:text="@string/adresa" />
+
+        <ImageView
+            android:id="@+id/ic_adress"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:contentDescription="adress"
+            android:src="@drawable/ic_copy" />
+    </RelativeLayout>
+
+    <!--tel. cislo-->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Telefón"
+        android:textColor="@color/brown_dark"
+        android:textSize="20sp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/border"
+        android:padding="8dp"
+        android:id="@+id/call">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/telefon" />
+
+        <ImageView
+            android:id="@+id/ic_call"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:contentDescription="call"
+            android:src="@drawable/ic_call" />
+    </RelativeLayout>
+
+    <!--email-->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Email"
+        android:textColor="@color/brown_dark"
+        android:textSize="20sp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/border"
+        android:padding="8dp"
+        android:id="@+id/email">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/email" />
+
+        <ImageView
+            android:id="@+id/ic_email"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:contentDescription="email"
+            android:src="@drawable/ic_email" />
+    </RelativeLayout>
+
+    <!-- Milodar na kostol-->
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Milodar na kostol"
+        android:textColor="@color/brown_dark"
+        android:textSize="20sp" />
+    <!-- IBAN -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/border"
+        android:padding="8dp"
+        android:id="@+id/iban_kostol">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@+id/ic_iban_kostol"
+            android:layout_toLeftOf="@+id/ic_iban_kostol"
+            android:text="@string/iban_kostol" />
+
+        <ImageView
+            android:id="@+id/ic_iban_kostol"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:contentDescription="IBAN"
+            android:src="@drawable/ic_copy" />
+    </RelativeLayout>
+
+    <!-- Milodar pre knaza -->
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Milodar pre kňaza za odslúženú omšu"
+        android:textColor="@color/brown_dark"
+        android:textSize="20sp" />
+    <!-- IBAN -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/border_dark"
+        android:padding="8dp"
+        android:id="@+id/iban_knaz">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toStartOf="@+id/ic_iban_knaz"
+            android:layout_toLeftOf="@+id/ic_iban_knaz"
+            android:textColor="@color/brown_superlight"
+            android:text="@string/iban_knaz" />
+
+        <ImageView
+            android:id="@+id/ic_iban_knaz"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:contentDescription="IBAN"
+            android:src="@drawable/ic_copy_light" />
+    </RelativeLayout>
+
+    </LinearLayout>
+
+</FrameLayout>
