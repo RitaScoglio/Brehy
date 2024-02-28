@@ -1,7 +1,6 @@
 package sk.brehy.lector
 
 import android.app.Dialog
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -11,12 +10,15 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import androidx.lifecycle.Observer
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.activityViewModels
+import com.applandeo.materialcalendarview.CalendarDay
 import com.applandeo.materialcalendarview.CalendarView
+import com.applandeo.materialcalendarview.listeners.OnCalendarDayClickListener
+import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener
 import com.applandeo.materialcalendarview.utils.CalendarProperties
 import sk.brehy.MainActivity
-import sk.brehy.DatabaseMainViewModel
-import sk.brehy.adapters.People
+import sk.brehy.MainViewModel
 import sk.brehy.adapters.PeopleAdapter
 import sk.brehy.R
 import sk.brehy.databinding.FragmentLectorBinding
@@ -24,12 +26,7 @@ import java.util.Calendar
 
 class LectorFragment : Fragment() {
 
-    companion object {
-        fun newInstance() = LectorFragment()
-    }
-
-    private lateinit var lectorModel: LectorViewModel
-    private lateinit var databaseModel: DatabaseMainViewModel
+    private val lectorModel: LectorViewModel by activityViewModels()
     private lateinit var binding: FragmentLectorBinding
 
     override fun onCreateView(
@@ -40,77 +37,68 @@ class LectorFragment : Fragment() {
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        lectorModel = ViewModelProvider(this).get(LectorViewModel::class.java)
-        databaseModel = ViewModelProvider(requireActivity()).get(DatabaseMainViewModel::class.java)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        val calendar = CalendarView::class.java.getDeclaredField("mCalendarProperties")
-        calendar.isAccessible = true
-        val properties = calendar[binding.calendarView] as CalendarProperties
-        properties.selectionColor = resources.getColor(R.color.red)
-        binding.calendarView.requestLayout()
-        binding.calendarView.setOnPreviousPageChangeListener {
-            lectorModel.refreshScreenData(databaseModel.lector_list.value!!, requireActivity())
-            lectorModel.highlightWeekends()
-        }
-        binding.calendarView.setOnForwardPageChangeListener {
-            lectorModel.refreshScreenData(databaseModel.lector_list.value!!, requireActivity())
-            lectorModel.highlightWeekends()
-
-        }
-        binding.calendarView.setOnDayClickListener { eventDay ->
-            val today = Calendar.getInstance()
-            val clickedDay = eventDay.calendar
-            val sameDay = today[Calendar.DAY_OF_YEAR] == clickedDay[Calendar.DAY_OF_YEAR] &&
-                    today[Calendar.YEAR] == clickedDay[Calendar.YEAR]
-            if (!sameDay) {
-                properties.selectionColor = resources.getColor(R.color.brown_dark)
-                binding.calendarView.requestLayout()
-            } else {
-                properties.selectionColor = resources.getColor(R.color.red)
-                binding.calendarView.requestLayout()
+        binding.calendarView.setOnPreviousPageChangeListener(object : OnCalendarPageChangeListener {
+            override fun onChange() {
+                lectorModel.highlightWeekends()
             }
-            writeToListView(databaseModel.lector_list.value!!, clickedDay)
+        })
+        binding.calendarView.setOnForwardPageChangeListener(object : OnCalendarPageChangeListener {
+            override fun onChange() {
+                lectorModel.highlightWeekends()
+            }
+        })
+        binding.calendarView.setOnCalendarDayClickListener(object : OnCalendarDayClickListener{
+            override fun onClick(calendarDay: CalendarDay) {
+                /*val today = Calendar.getInstance()
+                val clickedDay = calendarDay.calendar
+                val sameDay = today[Calendar.DAY_OF_YEAR] == clickedDay[Calendar.DAY_OF_YEAR] &&
+                        today[Calendar.YEAR] == clickedDay[Calendar.YEAR]
+                if (!sameDay) {
+                    //properties.selectionColor =
+                      //  ContextCompat.getColor(requireContext(), R.color.brown_dark)
+                } else {
+                    //properties.selectionColor = ContextCompat.getColor(requireContext(), R.color.red)
+                    //binding.calendarView.requestLayout()
+                }*/
+                writeToListView(calendarDay.calendar)
+            }
+        })
+        lectorModel.highlightWeekends()
+        binding.floatButton.setOnClickListener {
+            if (MainViewModel().isConnectedToInternet(requireContext())) {
+                val (number, date) = lectorModel.addNewLector(binding.calendarView.firstSelectedDate)
+                openDialog(number, date, "", "Pridať lektora")
+            } else
+                (activity as MainActivity).showToast(
+                    "Nie ste pripojený na internet.",
+                    R.drawable.network_background,
+                    R.color.brown_light
+                )
         }
 
-        lectorModel.highlightWeekends()
-        binding.floatButton.setOnClickListener(View.OnClickListener {
-            if (databaseModel.isConnectedToInternet(requireContext()))
-                writeToDatabase(binding.calendarView.selectedDate)
-            else
-                (activity as MainActivity).showToast("Nie ste pripojený na internet.", R.drawable.network_background, R.color.brown_light)
-        })
+        lectorModel.weekends.observe(viewLifecycleOwner) { weekends ->
+            binding.calendarView.setHighlightedDays(weekends) //TODO
+        }
 
-        lectorModel.weekends.observe(viewLifecycleOwner, Observer { weekends ->
-            binding.calendarView.setHighlightedDays(weekends)
-        })
-
-        databaseModel.lector_list.observe(viewLifecycleOwner, Observer { list ->
-            binding.calendarView.setEvents(lectorModel.refreshScreenData(list, requireActivity()))
-            val selected = binding.calendarView.selectedDate
-            writeToListView(list, selected)
-        })
+        lectorModel.lectorList.observe(viewLifecycleOwner) { _ ->
+            binding.calendarView.setCalendarDays(lectorModel.refreshScreenData(requireActivity()))
+            val selected = binding.calendarView.firstSelectedDate
+            writeToListView(selected)
+        }
     }
 
-    private fun writeToDatabase(calendar: Calendar) {
-        val date =
-            "${calendar[Calendar.YEAR]}-${(calendar[Calendar.MONTH] + 1)}-${calendar[Calendar.DAY_OF_MONTH]}"
-        val current = databaseModel.lector_list.value?.get(date)
-        val number: Int
-        number = if (current == null) 1 else current.size + 1
-        openDialog(Integer.toString(number), date, "", "Pridať lektora")
-    }
-
-    fun writeToListView(list: MutableMap<String, List<People>>, selected: Calendar) {
+    private fun writeToListView(selected: Calendar) {
         val date =
             "${selected[Calendar.YEAR]}-${(selected[Calendar.MONTH] + 1)}-${selected[Calendar.DAY_OF_MONTH]}"
-        val current = list[date]
+        val current = lectorModel.lectorList.value!![date]
         if (current != null) {
             binding.listviewCalendar.adapter = PeopleAdapter(requireActivity(), current)
-            binding.listviewCalendar.setOnItemClickListener { parent, view, position, id ->
+            binding.listviewCalendar.setOnItemClickListener { _, _, position, _ ->
                 val people = current[position]
-                if (databaseModel.isConnectedToInternet(requireContext()))
+                if (MainViewModel().isConnectedToInternet(requireContext()))
                     openDialog(
                         people.number,
                         date,
@@ -118,7 +106,11 @@ class LectorFragment : Fragment() {
                         "Upraviť lektora"
                     )
                 else
-                    (activity as MainActivity).showToast("Nie ste pripojený na internet.", R.drawable.network_background, R.color.brown_light)
+                    (activity as MainActivity).showToast(
+                        "Nie ste pripojený na internet.",
+                        R.drawable.network_background,
+                        R.color.brown_light
+                    )
             }
         } else binding.listviewCalendar.adapter = null
     }
@@ -141,14 +133,13 @@ class LectorFragment : Fragment() {
         val edit = dialog.findViewById<View>(R.id.name) as EditText
         edit.setText(name)
         val positive = dialog.findViewById<View>(R.id.positive) as Button
-        positive.setOnClickListener { v: View? ->
-            databaseModel.dialogPositiveButtonLector(
+        positive.setOnClickListener { _: View? ->
+            lectorModel.dialogPositiveButton(
                 edit.text.toString(),
                 date,
                 number,
                 keys
             )
-            //lectorModel.refreshScreenData(, requireActivity())
             dialog.dismiss()
         }
         val negative = dialog.findViewById<View>(R.id.negative) as Button

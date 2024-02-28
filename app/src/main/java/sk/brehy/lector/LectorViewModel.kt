@@ -1,18 +1,98 @@
 package sk.brehy.lector
 
 import android.content.Context
+import android.util.Log
+import androidx.appcompat.content.res.AppCompatResources.getDrawable
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.amulyakhare.textdrawable.TextDrawable
-import com.applandeo.materialcalendarview.EventDay
-import sk.brehy.DatabaseMainViewModel
+import com.applandeo.materialcalendarview.CalendarDay
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
 import sk.brehy.adapters.People
 import sk.brehy.R
+import java.util.ArrayList
 import java.util.Calendar
 
-class LectorViewModel : DatabaseMainViewModel() {
+class LectorViewModel : ViewModel() {
 
+    lateinit var calendarDatabase: DatabaseReference
+
+    var lectorList = MutableLiveData<MutableMap<String, List<People>>>()
     var weekends = MutableLiveData<MutableList<Calendar>>()
+
+    fun getData() {
+        deleteOldData()
+        calendarDatabase.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                val list = mutableMapOf<String, List<People>>()
+                Log.d("lektorov", "data snap")
+                val years = dataSnapshot.children
+                for (year in years) {
+                    val y = year.key
+                    val months = year.children
+                    for (month in months) {
+                        val m = month.key
+                        val days = month.children
+                        for (day in days) {
+                            val d = day.key
+                            val people = day.children
+                            val all = mutableListOf<People>()
+                            for (human in people) {
+                                all.add(People(human.key as String, human.value as String))
+                            }
+                            list["$y-$m-$d"] = all
+                        }
+                    }
+                }
+                lectorList.value = list
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FATAL_CalendarAddValue", error.message)
+            }
+        })
+    }
+
+    private fun deleteOldData() {
+        val currentMonth = Calendar.getInstance().get(Calendar.MONTH)
+        val deleteMonth = currentMonth - 3
+        if (deleteMonth > 0) calendarDatabase.child(
+            Calendar.getInstance().get(Calendar.YEAR).toString()
+        )
+            .child((deleteMonth + 1).toString()).removeValue()
+        else calendarDatabase.child((Calendar.getInstance().get(Calendar.YEAR) - 1).toString())
+            .child((deleteMonth + 13).toString()).removeValue()
+    }
+
+    fun dialogPositiveButton(name: String, date: String, number: String, keys: Array<String>) {
+        if (name != "") {
+            calendarDatabase.child(keys[0]).child(keys[1]).child(keys[2]).child(number)
+                .setValue(name)
+        } else {
+            val people = lectorList.value?.get(date) as MutableList
+            if (people.size > number.toInt() - 1) {
+                calendarDatabase.child(keys[0]).child(keys[1]).child(keys[2])
+                    .removeValue()
+                people.removeAt(number.toInt() - 1)
+                if (people.isEmpty()) lectorList.value!!.remove(date) else {
+                    var order = 1
+                    val newPeople = ArrayList<People>()
+                    for (human in people) {
+                        newPeople.add(People(order.toString(), human.name))
+                        calendarDatabase.child(keys[0]).child(keys[1]).child(keys[2])
+                            .child(order.toString()).setValue(human.name)
+                        order++
+                    }
+                    lectorList.value!![date] = newPeople
+                }
+            }
+        }
+    }
 
     fun checkLogIn(context: Context): Boolean {
         val settings = context.getSharedPreferences("FarnostBrehy", 0)
@@ -44,22 +124,47 @@ class LectorViewModel : DatabaseMainViewModel() {
 
     }
 
-    fun refreshScreenData(list: MutableMap<String, List<People>>, activity: FragmentActivity): MutableList<EventDay> {
-        val events = mutableListOf<EventDay>()
-        for ((key, value) in list) {
+    fun refreshScreenData(activity: FragmentActivity): MutableList<CalendarDay> {
+        val events = mutableListOf<CalendarDay>()
+        for ((key, value) in lectorList.value!!) {
             val date = key.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             val name = value.size
             val calendar = Calendar.getInstance()
             calendar[date[0].toInt(), date[1].toInt() - 1] = date[2].toInt()
-            val d = TextDrawable.builder()
-                .beginConfig()
-                .textColor(activity.resources.getColor(R.color.brown_superlight))
-                .bold()
-                .endConfig()
-                .buildRound(Integer.toString(name), activity.resources.getColor(R.color.brown_dark))
-            events.add(EventDay(calendar, d))
+            val color = if(calendar == Calendar.getInstance()) R.color.red else R.color.brown_dark
+            events.add(CalendarDay(calendar).apply {
+                imageDrawable = TextDrawable.builder()
+                    .beginConfig()
+                    .textColor(ContextCompat.getColor(activity, R.color.brown_superlight))
+                    .bold()
+                    .endConfig()
+                    .buildRound(name.toString(), ContextCompat.getColor(activity, R.color.brown_dark))
+                selectedBackgroundDrawable = TextDrawable.builder()
+                    .beginConfig()
+                    .textColor(ContextCompat.getColor(activity, R.color.brown_superlight))
+                    .bold()
+                    .endConfig()
+                    .buildRound("", ContextCompat.getColor(activity, color))
+            })
         }
+        if(!events.contains(CalendarDay(Calendar.getInstance())))
+            events.add(CalendarDay(Calendar.getInstance()).apply {
+                selectedBackgroundDrawable = TextDrawable.builder()
+                    .beginConfig()
+                    .textColor(ContextCompat.getColor(activity, R.color.brown_superlight))
+                    .bold()
+                    .endConfig()
+                    .buildRound("", ContextCompat.getColor(activity, R.color.red))
+            })
         return events
+    }
+
+    fun addNewLector(calendar: Calendar): Pair<String, String> {
+        val date =
+            "${calendar[Calendar.YEAR]}-${(calendar[Calendar.MONTH] + 1)}-${calendar[Calendar.DAY_OF_MONTH]}"
+        val current = lectorList.value?.get(date)
+        val number: Int = if (current == null) 1 else current.size + 1
+        return Pair(number.toString(), date)
     }
 
 }

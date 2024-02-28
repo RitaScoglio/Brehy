@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:descendantFocusability="blocksDescendants"
     android:orientation="vertical"
-    android:padding="8dp"
-    android:descendantFocusability="blocksDescendants">
+    android:padding="8dp">
 
     <LinearLayout
+        android:id="@+id/head"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:background="@drawable/toast_background"
         android:orientation="vertical"
-        android:padding="8dp"
-        android:id="@+id/head">
+        android:padding="8dp">
 
         <TextView
             android:id="@+id/title"
@@ -34,22 +35,24 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/head"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        tools:ignore="WebViewLayout">
 
         <WebView
             android:id="@+id/content_list"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="100dp" />
 
-            <!--<TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/citat_viac"
-                android:textColor="@color/brown_dark"
-                android:background="@drawable/next_background"
-                android:padding="6dp" />-->
+        <TextView
+            android:layout_marginTop="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/next_background"
+            android:padding="6dp"
+            android:text="@string/citat_viac"
+            android:textColor="@color/brown_dark" />
 
 
     </LinearLayout>

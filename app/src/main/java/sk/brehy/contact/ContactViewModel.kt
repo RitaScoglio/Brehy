@@ -7,7 +7,6 @@ import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import sk.brehy.R
 
 class ContactViewModel : ViewModel() {
     fun textClipboard(label: String, text: String, context: Context) {

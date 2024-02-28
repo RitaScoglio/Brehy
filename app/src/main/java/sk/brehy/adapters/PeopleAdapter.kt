@@ -11,8 +11,8 @@ import sk.brehy.R
 
 data class People(var number: String, var name: String)
 
-class PeopleAdapter(context: Context, words: List<People>)
-    : ArrayAdapter<People>(context, 0, words as MutableList<People>) {
+class PeopleAdapter(context: Context, words: List<People>) :
+    ArrayAdapter<People>(context, 0, words as MutableList<People>) {
     @SuppressLint("ViewHolder")
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val listItemView = LayoutInflater.from(context).inflate(R.layout.people_list, parent, false)

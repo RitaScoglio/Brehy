@@ -1,12 +1,12 @@
 package sk.brehy
 
-//import sk.brehy.contact.ContactFragment
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -16,49 +16,85 @@ import sk.brehy.contact.ContactFragment
 import sk.brehy.databinding.MainActivityBinding
 import sk.brehy.intro.IntroFragment
 import sk.brehy.lector.LectorLoginFragment
+import sk.brehy.lector.LectorViewModel
 import sk.brehy.massInformation.MassInformationFragment
 import sk.brehy.massInformation.MassInformationViewModel
 import sk.brehy.news.NewsFragment
+import sk.brehy.news.NewsViewModel
 import sk.brehy.web.WebpageFragment
-
-
-//import sk.brehy.news.NewsFragment
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: MainActivityBinding
     private lateinit var massInfoModel: MassInformationViewModel
-    private lateinit var mainModel: DatabaseMainViewModel
+    private lateinit var lectorModel: LectorViewModel
+    private lateinit var newsModel: NewsViewModel
+    private lateinit var mainModel: MainViewModel
+
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            when (this@MainActivity.supportFragmentManager.backStackEntryCount) {
+                0 -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                        this@MainActivity.finishAndRemoveTask()
+                    else
+                        this@MainActivity.finish()
+                    this@MainActivity.onDestroy()
+                }
+                1 -> {
+                    showToast(
+                        "Pre skončenie aplikácie stlačte tlačídlo \"Späť\" ešte raz.",
+                        R.drawable.border_dark,
+                        R.color.brown_light
+                    )
+                    this@MainActivity.supportFragmentManager.popBackStack()
+                }
+                else -> this@MainActivity.supportFragmentManager.popBackStack()
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        mainModel = ViewModelProvider(this).get(DatabaseMainViewModel::class.java)
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+
+        mainModel = ViewModelProvider(this)[MainViewModel::class.java]
         mainModel.initiateFirebase()
         mainModel.initiateFirebaseAuth(this)
         mainModel.initiateGoogleMessagingService(this)
         startDownloadingMassInformation()
         getLectorDatabaseData()
+        getNewsDatabaseData()
 
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.frame_layout, IntroFragment())
-                .commit()
-        }
+        if (savedInstanceState == null)
+            changeFragment(IntroFragment(), "intro")
         setBottomNavigation()
-
         askNotificationPermission()
     }
 
     private fun startDownloadingMassInformation() {
-        massInfoModel = ViewModelProvider(this).get(MassInformationViewModel::class.java)
+        massInfoModel = ViewModelProvider(this)[MassInformationViewModel::class.java]
         massInfoModel.getAvailableMassInformation(this)
     }
 
     private fun getLectorDatabaseData() {
-        mainModel.getLectorData()
+        lectorModel = ViewModelProvider(this)[LectorViewModel::class.java]
+        lectorModel.calendarDatabase = mainModel.calendarDatabase
+        lectorModel.getData()
+    }
+
+    private fun getNewsDatabaseData() {
+        newsModel = ViewModelProvider(this)[NewsViewModel::class.java]
+        newsModel.newsDatabase = mainModel.newsDatabase
+
+        if (mainModel.isConnectedToInternet(this)) {
+            newsModel.getNewData(this)
+        } else {
+            newsModel.getSavedData()
+        }
     }
 
     private fun setBottomNavigation() {
@@ -68,42 +104,66 @@ class MainActivity : AppCompatActivity() {
                     changeFragment(NewsFragment())
                     true
                 }
+
                 R.id.menu_mass_information -> {
                     changeFragment(MassInformationFragment())
                     true
                 }
+
                 R.id.menu_webpage -> {
                     changeFragment(WebpageFragment())
                     true
                 }
+
                 R.id.menu_lector -> {
                     changeFragment(LectorLoginFragment())
                     true
                 }
+
                 R.id.menu_contact -> {
                     changeFragment(ContactFragment())
                     true
                 }
+
                 else -> true
             }
         }
     }
 
-    fun changeFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .setCustomAnimations(R.anim.slide_in, R.anim.fade_out, R.anim.fade_in, R.anim.slide_out)
-            .replace(R.id.frame_layout, fragment)
-            .setReorderingAllowed(true)
-            .commit()
+    fun changeFragment(fragment: Fragment, from: String = "") {
+        if (from != "")
+            supportFragmentManager.beginTransaction()
+                .setCustomAnimations(
+                    R.anim.slide_in,
+                    R.anim.fade_out,
+                    R.anim.fade_in,
+                    R.anim.slide_out
+                )
+                .replace(R.id.frame_layout, fragment)
+                .addToBackStack(from)
+                .setReorderingAllowed(true)
+                .commit()
+        else
+            supportFragmentManager.beginTransaction()
+                .setCustomAnimations(
+                    R.anim.slide_in,
+                    R.anim.fade_out,
+                    R.anim.fade_in,
+                    R.anim.slide_out
+                )
+                .replace(R.id.frame_layout, fragment)
+                .setReorderingAllowed(true)
+                .commit()
     }
 
-    fun showToast(message: String, background_color: Int, text_color: Int){
-        val layout = this.layoutInflater.inflate (R.layout.toast, this.findViewById(R.id.toast_layout))
-        layout.background = ContextCompat.getDrawable(this, background_color)
-        layout.setPadding(16,16,16,16)
+    fun showToast(message: String, backgroundColor: Int, textColor: Int) {
+        val layout =
+            this.layoutInflater.inflate(R.layout.toast, this.findViewById(R.id.toast_layout))
+        layout.background = ContextCompat.getDrawable(this, backgroundColor)
+        layout.setPadding(16, 16, 16, 16)
         val toastMessage = layout.findViewById<TextView>(R.id.toast_text)
         toastMessage.text = message
-        toastMessage.setTextColor(ContextCompat.getColor(this, text_color))
+        toastMessage.setTextColor(ContextCompat.getColor(this, textColor))
         val myToast = Toast(this)
         myToast.duration = Toast.LENGTH_LONG
         myToast.view = layout
@@ -114,12 +174,7 @@ class MainActivity : AppCompatActivity() {
     // Declare the launcher at the top of your Activity/Fragment:
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            // FCM SDK (and your app) can post notifications.
-        } else {
-            // TODO: Inform user that that your app will not show notifications.
-        }
+    ) { _: Boolean ->
     }
 
     private fun askNotificationPermission() {

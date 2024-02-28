@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import sk.brehy.databinding.FragmentContactBinding
 import sk.brehy.databinding.FragmentWebpageBinding
 
 class WebpageFragment : Fragment() {
@@ -21,8 +20,8 @@ class WebpageFragment : Fragment() {
         binding = FragmentWebpageBinding.inflate(inflater, container, false)
         return binding.root    }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         val webSettings = binding.webview.settings
         webSettings.javaScriptEnabled = true

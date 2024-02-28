@@ -5,22 +5,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.WebView
-import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
-import sk.brehy.DatabaseMainViewModel
+import androidx.fragment.app.activityViewModels
 import sk.brehy.R
-import sk.brehy.databinding.FragmentNewsBinding
 import sk.brehy.databinding.FragmentNewsContentBinding
 
 class NewsContentFragment : Fragment() {
-    companion object {
-        fun newInstance() = NewsFragment()
-    }
 
-    private lateinit var newsModel: NewsViewModel
-    private lateinit var databaseModel: DatabaseMainViewModel
+    private val newsModel: NewsViewModel by activityViewModels()
     private lateinit var binding: FragmentNewsContentBinding
 
     override fun onCreateView(
@@ -31,17 +23,21 @@ class NewsContentFragment : Fragment() {
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        newsModel = ViewModelProvider(requireActivity()).get(NewsViewModel::class.java)
-        databaseModel = ViewModelProvider(requireActivity()).get(DatabaseMainViewModel::class.java)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         showContent()
     }
 
     private fun showContent() {
-        binding.title.setText(newsModel.openedContent.title)
-        binding.date.setText(newsModel.openedContent.date)
-        binding.content.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.brown_superlight))
+        binding.title.text = newsModel.openedContent.title
+        binding.date.text = newsModel.openedContent.date
+        binding.content.setBackgroundColor(
+            ContextCompat.getColor(
+                requireContext(),
+                R.color.brown_superlight
+            )
+        )
         binding.content.loadData(newsModel.openedContent.content, "text/html", "windows-1250")
         val webSettings = binding.content.settings
         webSettings.javaScriptEnabled = true

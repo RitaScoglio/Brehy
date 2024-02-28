@@ -14,9 +14,4 @@ class IntroFragment : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_uvod, container, false)
     }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-    }
-
 }
