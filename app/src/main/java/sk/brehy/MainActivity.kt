@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var newsModel: NewsViewModel
     private lateinit var mainModel: MainViewModel
 
-    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+   /* private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             when (this@MainActivity.supportFragmentManager.backStackEntryCount) {
                 0 -> {
@@ -52,14 +52,14 @@ class MainActivity : AppCompatActivity() {
                 else -> this@MainActivity.supportFragmentManager.popBackStack()
             }
         }
-    }
+    }*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+        //onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
         mainModel = ViewModelProvider(this)[MainViewModel::class.java]
         mainModel.initiateFirebase()
