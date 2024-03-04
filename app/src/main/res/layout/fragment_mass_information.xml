@@ -9,6 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
+        android:text="Problémy so sťahovaním."
         android:id="@+id/download_info"/>
 
     <androidx.appcompat.widget.AppCompatButton

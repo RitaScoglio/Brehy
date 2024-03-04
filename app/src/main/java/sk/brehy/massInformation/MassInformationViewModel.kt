@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
@@ -36,26 +37,41 @@ class MassInformationViewModel : ViewModel() {
     fun getAvailableMassInformation(context: Context) {
         val calendar: Calendar = Calendar.getInstance(Locale.ITALY)
         calendar.firstDayOfWeek = 1
-        val currentWeek = calendar.get(Calendar.WEEK_OF_YEAR)
+        val date = "${calendar.get(Calendar.DAY_OF_MONTH)}-${calendar.get(Calendar.MONTH)+1}-${calendar.get(Calendar.YEAR)}"
         val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-        saveCurrentWeek(path, "oznamy-${currentWeek}.jpg", context)
-        deletePrevious(path!!, "oznamy-${currentWeek}.jpg")
+        if (path != null) {
+            saveCurrentWeek(path,"oznamy-${date}.jpg", context, Pair(calendar.get(Calendar.WEEK_OF_YEAR), calendar.get(Calendar.YEAR)))
+            deletePrevious(path, "oznamy-${date}.jpg")
+        }
     }
 
-    private fun saveCurrentWeek(path: File?, filename: String, context: Context) {
-        val massInfoFile = File("${path}/${filename}")
+    private fun saveCurrentWeek(directory: File, filename: String, context: Context, currentWeek: Pair<Int, Int>) {
+        val lastDownloadedInfo = directory.listFiles()!!.map{ it.name }
+        Log.d("fatal", lastDownloadedInfo.toString())
+        val massInfoFile = File("${directory}/${filename}")
         if (!massInfoFile.exists()) {
             if (MainViewModel().isConnectedToInternet(context)) {
                 status.value = "Sťahuje sa..."
                 viewModelScope.async {
-                    runDownload(context, path.toString(), filename)
+                    runDownload(context, directory.toString(), filename)
                     status.value = "K dispozícií."
                 }
-            } else
+            } else if(compareDownloadedInfo(lastDownloadedInfo, currentWeek))
+                filePath.value = "${directory}/${lastDownloadedInfo.first()}"
+            else
                 filePath.value = ""
         } else {
-            filePath.value = "${path}/${filename}"
+            filePath.value = "${directory}/${filename}"
         }
+    }
+
+    private fun compareDownloadedInfo(lastDownloaded: List<String>, currentWeek: Pair<Int, Int>): Boolean {
+        return if(lastDownloaded.isNotEmpty()) {
+            val date = lastDownloaded.first().split("-").drop(1).map { it.toInt() }
+            val calendar: Calendar = Calendar.getInstance(Locale.ITALY)
+            calendar.set(date[2], date[1] - 1, date[0])
+            Pair(calendar.get(Calendar.WEEK_OF_YEAR), calendar.get(Calendar.YEAR)) == currentWeek
+        } else false
     }
 
     private fun deletePrevious(directory: File, actual: String) {
