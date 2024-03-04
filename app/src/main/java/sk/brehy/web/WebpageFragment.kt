@@ -26,6 +26,7 @@ class WebpageFragment : Fragment() {
         val webSettings = binding.webview.settings
         webSettings.javaScriptEnabled = true
         webSettings.domStorageEnabled = true
+        webSettings.builtInZoomControls = true
         binding.webview.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
                 view.loadUrl(url)
