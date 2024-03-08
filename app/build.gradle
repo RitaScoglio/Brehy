@@ -11,7 +11,7 @@ android {
         applicationId "sk.brehy"
         minSdk 16
         targetSdk 33
-        versionCode 17
+        versionCode 19
         versionName "1.3"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

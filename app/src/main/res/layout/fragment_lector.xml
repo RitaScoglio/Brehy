@@ -6,10 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".lector.LectorFragment">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -55,7 +51,5 @@
             app:fabSize="mini"
             tools:ignore="ContentDescription" />
     </RelativeLayout>
-
-    </ScrollView>
 
 </FrameLayout>

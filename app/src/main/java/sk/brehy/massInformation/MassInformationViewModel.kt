@@ -167,12 +167,15 @@ class MassInformationViewModel : ViewModel() {
                 when (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
                     DownloadManager.STATUS_FAILED -> {
                         finishDownload = true
+                        status.value = "Sťahovanie neúspešné."
                     }
 
                     DownloadManager.STATUS_PAUSED -> {
+                        status.value = "Sťahovanie pozastavené."
                     }
 
                     DownloadManager.STATUS_PENDING -> {
+                        status.value = "Čaká sa na sťahovanie."
                     }
 
                     DownloadManager.STATUS_RUNNING -> {

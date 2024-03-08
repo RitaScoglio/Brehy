@@ -118,6 +118,7 @@ class NewsViewModel : ViewModel() {
                 }
             } catch (exception: Exception) {
                 Log.d("NewsViewModel", exception.message.toString())
+                getSavedData()
             }
             return@withContext list
         }
