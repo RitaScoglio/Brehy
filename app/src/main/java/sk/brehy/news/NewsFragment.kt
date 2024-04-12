@@ -31,6 +31,10 @@ class NewsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        newsModel.newsDatabase = databaseModel.newsDatabase
+
+        newsModel.getSavedData()
+
         newsModel.newsList.observe(viewLifecycleOwner) { list ->
             val adapter = NewsAdapter(requireContext(), list)
             binding.listview.adapter = adapter
@@ -51,4 +55,9 @@ class NewsFragment : Fragment() {
         }
     }
 
+    override fun onStart() {
+        if (databaseModel.isConnectedToInternet(requireContext()))
+            newsModel.getNewData(requireActivity())
+        super.onStart()
+    }
 }

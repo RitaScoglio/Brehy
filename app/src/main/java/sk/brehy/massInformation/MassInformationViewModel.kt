@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -33,51 +34,79 @@ class MassInformationViewModel : ViewModel() {
 
     var status = MutableLiveData<String>()
     var filePath = MutableLiveData<String>()
+    var statusToast = ""
 
+    //val status: StateFlow<String> = statusMutableFlow
     fun getAvailableMassInformation(context: Context) {
         val calendar: Calendar = Calendar.getInstance(Locale.ITALY)
         calendar.firstDayOfWeek = 1
-        val date = "${calendar.get(Calendar.DAY_OF_MONTH)}-${calendar.get(Calendar.MONTH)+1}-${calendar.get(Calendar.YEAR)}"
+        val date = "${calendar.get(Calendar.DAY_OF_MONTH)}-${calendar.get(Calendar.MONTH) + 1}-${
+            calendar.get(Calendar.YEAR)
+        }"
         val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        val currentWeek = Pair(calendar.get(Calendar.WEEK_OF_YEAR), calendar.get(Calendar.YEAR))
         if (path != null) {
-            saveCurrentWeek(path,"oznamy-${date}.jpg", context, Pair(calendar.get(Calendar.WEEK_OF_YEAR), calendar.get(Calendar.YEAR)))
-            deletePrevious(path, "oznamy-${date}.jpg")
+            saveCurrentWeek(path, "oznamy-${date}.jpg", context, currentWeek)
+            deletePrevious(path, "oznamy-${date}.jpg", currentWeek)
         }
     }
 
-    private fun saveCurrentWeek(directory: File, filename: String, context: Context, currentWeek: Pair<Int, Int>) {
-        val lastDownloadedInfo = directory.listFiles()!!.map{ it.name }
+    private fun saveCurrentWeek(
+        directory: File,
+        filename: String,
+        context: Context,
+        currentWeek: Pair<Int, Int>
+    ) {
+        val lastDownloadedInfo = directory.listFiles()!!.map { it.name }
         Log.d("fatal", lastDownloadedInfo.toString())
         val massInfoFile = File("${directory}/${filename}")
+        Log.d("mass_info", "filename: ${filename}")
         if (!massInfoFile.exists()) {
             if (MainViewModel().isConnectedToInternet(context)) {
-                status.value = "Sťahuje sa..."
+                Log.d("mass_info", "is connected")
                 viewModelScope.async {
                     runDownload(context, directory.toString(), filename)
-                    status.value = "K dispozícií."
                 }
-            } else if(compareDownloadedInfo(lastDownloadedInfo, currentWeek))
+            } else if (massInfoFromCurrentWeek(lastDownloadedInfo.ifEmpty { listOf("invalid") }
+                    .first(), currentWeek)) {
+                Log.d("mass_info", "in current week: ${lastDownloadedInfo.first()}")
                 filePath.value = "${directory}/${lastDownloadedInfo.first()}"
-            else
+            } else
                 filePath.value = ""
         } else {
+            Log.d("mass_info", "exists")
             filePath.value = "${directory}/${filename}"
         }
     }
 
-    private fun compareDownloadedInfo(lastDownloaded: List<String>, currentWeek: Pair<Int, Int>): Boolean {
-        return if(lastDownloaded.isNotEmpty()) {
-            val date = lastDownloaded.first().split("-").drop(1).map { it.toInt() }
+    private fun massInfoFromCurrentWeek(
+        lastDownloaded: String,
+        currentWeek: Pair<Int, Int>
+    ): Boolean {
+        val date = lastDownloaded.dropLast(4).split("-").drop(1).map { it.toInt() }
+        return if (date.size >= 3) {
             val calendar: Calendar = Calendar.getInstance(Locale.ITALY)
+            calendar.firstDayOfWeek = 1
             calendar.set(date[2], date[1] - 1, date[0])
+            Log.d(
+                "mass_info",
+                "${
+                    Pair(
+                        calendar.get(Calendar.WEEK_OF_YEAR),
+                        calendar.get(Calendar.YEAR)
+                    )
+                } ${currentWeek}"
+            )
             Pair(calendar.get(Calendar.WEEK_OF_YEAR), calendar.get(Calendar.YEAR)) == currentWeek
         } else false
     }
 
-    private fun deletePrevious(directory: File, actual: String) {
+    private fun deletePrevious(directory: File, actual: String, currentWeek: Pair<Int, Int>) {
         for (file in directory.listFiles()!!) {
-            if (file.name != actual)
+            if (file.name != actual && !massInfoFromCurrentWeek(file.name, currentWeek)) {
+                Log.d("mass_delete", "file: ${file.name}")
                 file.delete()
+            }
         }
     }
 
@@ -131,6 +160,7 @@ class MassInformationViewModel : ViewModel() {
 
     private suspend fun doInBackground(): String =
         withContext(Dispatchers.IO) { // to run code in Background Thread
+            Log.d("mass_download", "doInBackground")
             try {
                 val document: Document =
                     Jsoup.connect("https://farabrehy.sk/stranky/Farske-oznamy/Farske-oznamy.php")
@@ -149,52 +179,86 @@ class MassInformationViewModel : ViewModel() {
         directory: String,
         filename: String
     ) {
-        val file = File("${directory}/${filename}")
-        val request = DownloadManager.Request(Uri.parse(fileURL))
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-            .setDestinationUri(Uri.fromFile(file))
-            .setTitle(filename)
-            .setDescription("Downloading")
-            .setAllowedOverMetered(true)
-            .setAllowedOverRoaming(true)
-        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val downloadID = downloadManager.enqueue(request)
-        var finishDownload = false
-        while (!finishDownload) {
-            val cursor: Cursor =
-                downloadManager.query(DownloadManager.Query().setFilterById(downloadID))
-            if (cursor.moveToFirst()) {
-                when (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
-                    DownloadManager.STATUS_FAILED -> {
-                        finishDownload = true
-                        status.value = "Sťahovanie neúspešné."
-                    }
-
-                    DownloadManager.STATUS_PAUSED -> {
-                        status.value = "Sťahovanie pozastavené."
-                    }
-
-                    DownloadManager.STATUS_PENDING -> {
-                        status.value = "Čaká sa na sťahovanie."
-                    }
-
-                    DownloadManager.STATUS_RUNNING -> {
-                        //to publish progress
-                        val total: Long =
-                            cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
-                        if (total >= 0) {
-                            val downloaded: Long =
-                                cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-                            status.value = "Stiahnuté: ${floor((downloaded * 100.0) / total)}%"
+        Log.d("mass_download", "onPostExecute")
+        status.value = "Sťahovanie nezačalo. Stlačte tlačídlo \"Stiahnúť\""
+        Log.d("mass_download", "fileURL: ${fileURL}")
+        if (fileURL.isNotEmpty()) {
+            status.value = "Pracuje sa na sťahovaní."
+            val file = File("${directory}/${filename}")
+            val request = DownloadManager.Request(Uri.parse(fileURL))
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                .setDestinationUri(Uri.fromFile(file))
+                .setTitle(filename)
+                .setDescription("Downloading")
+                .setAllowedOverMetered(true)
+                .setAllowedOverRoaming(true)
+            Log.d("mass_download", "request done")
+            val downloadManager =
+                context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            Log.d("mass_download", "downloadManager done")
+            val downloadID = downloadManager.enqueue(request)
+            Log.d("mass_download", "downloadID done")
+            var finishDownload = false
+            Log.d("mass_download", "failed: ${DownloadManager.STATUS_FAILED}")
+            Log.d("mass_download", "paused: ${DownloadManager.STATUS_PAUSED}")
+            Log.d("mass_download", "pending: ${DownloadManager.STATUS_PENDING}")
+            Log.d("mass_download", "running: ${DownloadManager.STATUS_RUNNING}")
+            Log.d("mass_download", "successful: ${DownloadManager.STATUS_SUCCESSFUL}")
+            while (!finishDownload) {
+                val cursor: Cursor =
+                    downloadManager.query(DownloadManager.Query().setFilterById(downloadID))
+                if (cursor.moveToFirst()) {
+                    Log.d(
+                        "mass_download",
+                        "cursor first: ${cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))}"
+                    )
+                    when (cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
+                        DownloadManager.STATUS_FAILED -> {
+                            finishDownload = true
+                            if (statusToast != "Sťahovanie neúspešné.") {
+                                statusToast = "Sťahovanie neúspešné."
+                                MassInformationFragment().showDownloadToast(statusToast)
+                            }
                         }
-                    }
 
-                    DownloadManager.STATUS_SUCCESSFUL -> {
-                        finishDownload = true
-                        filePath.value = file.path
+                        DownloadManager.STATUS_PAUSED -> {
+                            if (statusToast != "Sťahovanie pozastavené.") {
+                                statusToast = "Sťahovanie pozastavené."
+                                MassInformationFragment().showDownloadToast(statusToast)
+                            }
+                        }
+
+                        DownloadManager.STATUS_PENDING -> {
+                            if (statusToast != "Čaká sa na sťahovanie.") {
+                                statusToast = "Čaká sa na sťahovanie."
+                                MassInformationFragment().showDownloadToast(statusToast)
+                            }
+                        }
+
+                        DownloadManager.STATUS_RUNNING -> {
+                            //to publish progress
+                            val total: Long =
+                                cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+                            if (total >= 0) {
+                                //val downloaded: Long =
+                                  //  cursor.getLong(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+                                if (statusToast != "Prebieha sťahovanie.") {
+                                    statusToast = "Prebieha sťahovanie."
+                                    MassInformationFragment().showDownloadToast(statusToast)
+                                }
+                                //statusToast =
+                                  //  "Stiahnuté: ${floor((downloaded * 100.0) / total)}%"
+                            }
+                        }
+
+                        DownloadManager.STATUS_SUCCESSFUL -> {
+                            finishDownload = true
+                            filePath.value = file.path
+                        }
                     }
                 }
             }
         }
     }
+
 }

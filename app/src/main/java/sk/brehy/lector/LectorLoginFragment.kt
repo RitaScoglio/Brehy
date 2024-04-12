@@ -6,7 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import sk.brehy.MainActivity
+import sk.brehy.MainViewModel
 import sk.brehy.R
 import sk.brehy.Secret
 import sk.brehy.databinding.FragmentLectorLoginBinding
@@ -14,6 +16,7 @@ import sk.brehy.databinding.FragmentLectorLoginBinding
 class LectorLoginFragment : Fragment() {
 
     private val viewModel: LectorViewModel by activityViewModels()
+    private val databaseModel: MainViewModel by activityViewModels()
     private lateinit var binding: FragmentLectorLoginBinding
 
     override fun onCreateView(
@@ -26,6 +29,10 @@ class LectorLoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel.calendarDatabase = databaseModel.calendarDatabase
+        viewModel.getData()
+
         if (viewModel.checkLogIn(requireContext())) (activity as MainActivity).changeFragment(
             LectorFragment()
         )

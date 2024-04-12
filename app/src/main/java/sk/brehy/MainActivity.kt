@@ -27,11 +27,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: MainActivityBinding
     private lateinit var massInfoModel: MassInformationViewModel
-    private lateinit var lectorModel: LectorViewModel
-    private lateinit var newsModel: NewsViewModel
     private lateinit var mainModel: MainViewModel
 
-   /* private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+    /* private val onBackPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             when (this@MainActivity.supportFragmentManager.backStackEntryCount) {
                 0 -> {
@@ -66,8 +64,6 @@ class MainActivity : AppCompatActivity() {
         mainModel.initiateFirebaseAuth(this)
         mainModel.initiateGoogleMessagingService(this)
         startDownloadingMassInformation()
-        getLectorDatabaseData()
-        getNewsDatabaseData()
 
         if (savedInstanceState == null)
             changeFragment(IntroFragment(), "intro")
@@ -78,23 +74,6 @@ class MainActivity : AppCompatActivity() {
     private fun startDownloadingMassInformation() {
         massInfoModel = ViewModelProvider(this)[MassInformationViewModel::class.java]
         massInfoModel.getAvailableMassInformation(this)
-    }
-
-    private fun getLectorDatabaseData() {
-        lectorModel = ViewModelProvider(this)[LectorViewModel::class.java]
-        lectorModel.calendarDatabase = mainModel.calendarDatabase
-        lectorModel.getData()
-    }
-
-    private fun getNewsDatabaseData() {
-        newsModel = ViewModelProvider(this)[NewsViewModel::class.java]
-        newsModel.newsDatabase = mainModel.newsDatabase
-
-        if (mainModel.isConnectedToInternet(this)) {
-            newsModel.getNewData(this)
-        } else {
-            newsModel.getSavedData()
-        }
     }
 
     private fun setBottomNavigation() {
@@ -128,6 +107,11 @@ class MainActivity : AppCompatActivity() {
                 else -> true
             }
         }
+        binding.bottomNavigation.menu.setGroupCheckable(0, true, false)
+        for (i in 0 until binding.bottomNavigation.menu.size()) {
+            binding.bottomNavigation.menu.getItem(i).isChecked = false
+        }
+        binding.bottomNavigation.menu.setGroupCheckable(0, true, true)
     }
 
     fun changeFragment(fragment: Fragment, from: String = "") {
@@ -190,5 +174,5 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    // [END ask_post_notifications]
+    // [END ask_post_notifications] }
 }
