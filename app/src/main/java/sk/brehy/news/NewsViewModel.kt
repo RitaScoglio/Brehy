@@ -86,7 +86,7 @@ class NewsViewModel : ViewModel() {
         withContext(Dispatchers.IO) { // to run code in Background Thread
             val list = mutableListOf<News>()
             try {
-                val doc = Jsoup.connect("https://farabrehy.sk/aktuality.php").get()
+                val doc = Jsoup.connect("https://farabrehy.sk/aktuality.php").timeout(5000).get()
                 val children = doc.getElementsByAttribute("onmouseover")
                 for (e in children) {
                     val separate = e.attributes()["onclick"]

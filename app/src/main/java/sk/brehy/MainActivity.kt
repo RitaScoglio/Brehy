@@ -1,12 +1,15 @@
 package sk.brehy
 
 import android.Manifest
+import android.annotation.TargetApi
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -16,12 +19,11 @@ import sk.brehy.contact.ContactFragment
 import sk.brehy.databinding.MainActivityBinding
 import sk.brehy.intro.IntroFragment
 import sk.brehy.lector.LectorLoginFragment
-import sk.brehy.lector.LectorViewModel
 import sk.brehy.massInformation.MassInformationFragment
 import sk.brehy.massInformation.MassInformationViewModel
 import sk.brehy.news.NewsFragment
-import sk.brehy.news.NewsViewModel
 import sk.brehy.web.WebpageFragment
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -63,12 +65,43 @@ class MainActivity : AppCompatActivity() {
         mainModel.initiateFirebase()
         mainModel.initiateFirebaseAuth(this)
         mainModel.initiateGoogleMessagingService(this)
+
+        checkDrawOverlayPermission()
         startDownloadingMassInformation()
 
         if (savedInstanceState == null)
             changeFragment(IntroFragment(), "intro")
         setBottomNavigation()
         askNotificationPermission()
+    }
+
+    val REQUEST_CODE = 10101
+
+    fun checkDrawOverlayPermission(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true
+        }
+        return if (!Settings.canDrawOverlays(this)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName")
+            )
+            startActivityForResult(intent, REQUEST_CODE)
+            false
+        } else {
+            true
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    @TargetApi(Build.VERSION_CODES.M)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE) {
+            if (Settings.canDrawOverlays(this)) {
+                //startService(Intent(this, PowerButtonService::class.java))
+            }
+        }
     }
 
     private fun startDownloadingMassInformation() {

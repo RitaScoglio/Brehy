@@ -11,13 +11,14 @@ android {
         applicationId "sk.brehy"
         minSdk 16
         targetSdk 33
-        versionCode 19
+        versionCode 21
         versionName "1.3"
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures{
+        dataBinding true
         viewBinding true
     }
 
