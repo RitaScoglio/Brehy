@@ -1,7 +1,10 @@
 package sk.brehy.lector
 
+import android.app.Activity
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -11,23 +14,31 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
 import androidx.fragment.app.activityViewModels
-import com.applandeo.materialcalendarview.CalendarDay
-import com.applandeo.materialcalendarview.CalendarView
-import com.applandeo.materialcalendarview.listeners.OnCalendarDayClickListener
-import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener
-import com.applandeo.materialcalendarview.utils.CalendarProperties
+import com.kizitonwose.calendar.core.CalendarDay
+import com.kizitonwose.calendar.core.CalendarMonth
+import com.kizitonwose.calendar.core.DayPosition
+import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
+import com.kizitonwose.calendar.core.yearMonth
+import com.kizitonwose.calendar.view.MonthDayBinder
+import com.kizitonwose.calendar.view.MonthHeaderFooterBinder
+import com.kizitonwose.calendar.view.ViewContainer
 import sk.brehy.MainActivity
 import sk.brehy.MainViewModel
 import sk.brehy.adapters.PeopleAdapter
 import sk.brehy.R
+import sk.brehy.adapters.People
 import sk.brehy.databinding.FragmentLectorBinding
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.YearMonth
 
 class LectorFragment : Fragment() {
 
     private val lectorModel: LectorViewModel by activityViewModels()
-    private lateinit var binding: FragmentLectorBinding
+    private val databaseModel: MainViewModel by activityViewModels()
+    internal lateinit var binding: FragmentLectorBinding
+    lateinit var selectedDay: String
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,36 +51,22 @@ class LectorFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.calendarView.setOnPreviousPageChangeListener(object : OnCalendarPageChangeListener {
-            override fun onChange() {
-                lectorModel.highlightWeekends()
-            }
-        })
-        binding.calendarView.setOnForwardPageChangeListener(object : OnCalendarPageChangeListener {
-            override fun onChange() {
-                lectorModel.highlightWeekends()
-            }
-        })
-        binding.calendarView.setOnCalendarDayClickListener(object : OnCalendarDayClickListener{
-            override fun onClick(calendarDay: CalendarDay) {
-                /*val today = Calendar.getInstance()
-                val clickedDay = calendarDay.calendar
-                val sameDay = today[Calendar.DAY_OF_YEAR] == clickedDay[Calendar.DAY_OF_YEAR] &&
-                        today[Calendar.YEAR] == clickedDay[Calendar.YEAR]
-                if (!sameDay) {
-                    //properties.selectionColor =
-                      //  ContextCompat.getColor(requireContext(), R.color.brown_dark)
-                } else {
-                    //properties.selectionColor = ContextCompat.getColor(requireContext(), R.color.red)
-                    //binding.calendarView.requestLayout()
-                }*/
-                writeToListView(calendarDay.calendar)
-            }
-        })
-        lectorModel.highlightWeekends()
+        lectorModel.weekends.observe(viewLifecycleOwner) { weekends ->
+            //binding.calendarView.setHighlightedDays(weekends) //TODO
+        }
+
+        lectorModel.calendarDatabase = databaseModel.calendarDatabase
+        lectorModel.getData()
+
+        lectorModel.lectorList.observe(viewLifecycleOwner) { _ ->
+            setCalendar()
+            writeToListView(LocalDate.now().toString())
+        }
+
+        /*lectorModel.highlightWeekends()*/
         binding.floatButton.setOnClickListener {
             if (MainViewModel().isConnectedToInternet(requireContext())) {
-                val (number, date) = lectorModel.addNewLector(binding.calendarView.firstSelectedDate)
+                val (number, date) = lectorModel.addNewLector(selectedDay.replace("-0", "-"))
                 openDialog(number, date, "", "Pridať lektora")
             } else
                 (activity as MainActivity).showToast(
@@ -78,26 +75,135 @@ class LectorFragment : Fragment() {
                     R.color.brown_light
                 )
         }
-
-        lectorModel.weekends.observe(viewLifecycleOwner) { weekends ->
-            binding.calendarView.setHighlightedDays(weekends) //TODO
-        }
-
-        lectorModel.lectorList.observe(viewLifecycleOwner) { _ ->
-            binding.calendarView.setCalendarDays(lectorModel.refreshScreenData(requireActivity()))
-            val selected = binding.calendarView.firstSelectedDate
-            writeToListView(selected)
-        }
     }
 
-    private fun writeToListView(selected: Calendar) {
-        val date =
-            "${selected[Calendar.YEAR]}-${(selected[Calendar.MONTH] + 1)}-${selected[Calendar.DAY_OF_MONTH]}"
-        val current = lectorModel.lectorList.value!![date]
-        if (current != null) {
-            binding.listviewCalendar.adapter = PeopleAdapter(requireActivity(), current)
+    private fun setCalendar() {
+        var DAYS = listOf("Po", "Ut", "St", "Št", "Pi", "So", "Ne")
+        var MONTHS = listOf(
+            "Január",
+            "Február",
+            "Marec",
+            "Apríl",
+            "Máj",
+            "Jún",
+            "Júl",
+            "August",
+            "September",
+            "Október",
+            "November",
+            "December"
+        )
+
+        val currentDate = LocalDate.now().toString()
+        selectedDay = if(::selectedDay.isInitialized) selectedDay else currentDate
+
+        binding.calendarView.dayBinder = object : MonthDayBinder<DayViewContainer> {
+            override fun create(view: View) = DayViewContainer(view)
+
+            override fun bind(container: DayViewContainer, data: CalendarDay) {
+                container.textView.text = data.date.dayOfMonth.toString()
+                val date = "${data.date.year}-${data.date.monthValue}-${data.date.dayOfMonth}"
+                container.day = data
+                container.fragment = this@LectorFragment
+
+                if (data.date.toString() == currentDate) {
+                    container.textView.setTextColor(
+                        ContextCompat.getColor(
+                            requireActivity(),
+                            R.color.red
+                        )
+                    )
+                }
+
+                if (date in lectorModel.lectorList.value!!.keys) {
+                    container.numberOfLectors.text =
+                        lectorModel.lectorList.value!![date]!!.size.toString()
+                    if (data.date.toString() == selectedDay) {
+                        container.numberOfLectors.setBackgroundDrawable(
+                            ContextCompat.getDrawable(
+                                requireActivity(),
+                                R.drawable.round_red
+                            )
+                        )
+                    } else {
+                        container.numberOfLectors.setBackgroundDrawable(
+                            ContextCompat.getDrawable(
+                                requireActivity(),
+                                R.drawable.round
+                            )
+                        )
+                    }
+                } else {
+                    if (data.date.toString() == selectedDay) {
+                        container.numberOfLectors.setBackgroundDrawable(
+                            ContextCompat.getDrawable(
+                                requireActivity(),
+                                R.drawable.round_red
+                            )
+                        )
+                    } else {
+                        container.numberOfLectors.setBackgroundDrawable(
+                            ContextCompat.getDrawable(
+                                requireActivity(),
+                                R.drawable.round_invisible
+                            )
+                        )
+                    }
+                }
+
+                if (data.position != DayPosition.MonthDate) {
+                    container.textView.setTextColor(
+                        ContextCompat.getColor(
+                            requireActivity(),
+                            R.color.brown_semilight
+                        )
+                    )
+                    if (container.numberOfLectors.text != "") {
+                        container.numberOfLectors.setTextColor(
+                            ContextCompat.getColor(
+                                requireActivity(),
+                                R.color.brown
+                            )
+                        )
+                        container.numberOfLectors.setBackgroundDrawable(
+                            ContextCompat.getDrawable(
+                                requireActivity(),
+                                R.drawable.round_light
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        binding.calendarView.monthHeaderBinder = object :
+            MonthHeaderFooterBinder<MonthViewContainer> {
+            override fun create(view: View) = MonthViewContainer(view)
+            override fun bind(container: MonthViewContainer, data: CalendarMonth) {
+                container.monthTitle.text =
+                    "${MONTHS[data.yearMonth.monthValue - 1]} ${data.yearMonth.year}"
+                container.daysContainer.children
+                    .map { it as TextView }
+                    .forEachIndexed { index, textView ->
+                        textView.text = DAYS[index]
+                    }
+            }
+        }
+
+        val currentMonth = YearMonth.now()
+        val startMonth = currentMonth.minusMonths(4) // Adjust as needed
+        val endMonth = currentMonth.plusMonths(100) // Adjust as needed
+        val firstDayOfWeek = firstDayOfWeekFromLocale() // Available from the library
+        binding.calendarView.setup(startMonth, endMonth, firstDayOfWeek)
+        binding.calendarView.scrollToMonth(currentMonth)
+    }
+
+    fun writeToListView(date: String) {
+        val people = lectorModel.lectorList.value!![date]
+        if (people != null) {
+            binding.listviewCalendar.adapter = PeopleAdapter(requireActivity(), people)
             binding.listviewCalendar.setOnItemClickListener { _, _, position, _ ->
-                val people = current[position]
+                val people = people[position]
                 if (MainViewModel().isConnectedToInternet(requireContext()))
                     openDialog(
                         people.number,
@@ -115,7 +221,7 @@ class LectorFragment : Fragment() {
         } else binding.listviewCalendar.adapter = null
     }
 
-    private fun openDialog(number: String, date: String, name: String, title: String) {
+    internal fun openDialog(number: String, date: String, name: String, title: String) {
         val dialog = Dialog(requireContext())
         dialog.setContentView(R.layout.lector_dialog)
         val keys = date.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -147,4 +253,30 @@ class LectorFragment : Fragment() {
         dialog.show()
         dialog.window!!.attributes = layout
     }
+}
+
+class DayViewContainer(view: View) : ViewContainer(view) {
+    val textView = view.findViewById<TextView>(R.id.calendarDayText)
+    val numberOfLectors = view.findViewById<TextView>(R.id.number_lectors)
+    lateinit var day: CalendarDay
+    lateinit var fragment: LectorFragment
+
+    init {
+        view.setOnClickListener {
+            var oldSelected = fragment.selectedDay
+            fragment.selectedDay = day.date.toString()
+            if (day.position == DayPosition.MonthDate) {
+                fragment.binding.calendarView.notifyDateChanged(LocalDate.parse(oldSelected))
+            } else {
+                fragment.binding.calendarView.scrollToMonth(day.date.yearMonth)
+            }
+            fragment.binding.calendarView.notifyDateChanged(LocalDate.parse(day.date.toString()))
+            fragment.writeToListView(day.date.toString().replace("-0", "-"))
+        }
+    }
+}
+
+class MonthViewContainer(view: View) : ViewContainer(view) {
+    val monthTitle = view.findViewById<TextView>(R.id.month_title)
+    val daysContainer = view.findViewById<ViewGroup>(R.id.days_container) as ViewGroup
 }

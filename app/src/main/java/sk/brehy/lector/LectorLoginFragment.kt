@@ -16,7 +16,6 @@ import sk.brehy.databinding.FragmentLectorLoginBinding
 class LectorLoginFragment : Fragment() {
 
     private val viewModel: LectorViewModel by activityViewModels()
-    private val databaseModel: MainViewModel by activityViewModels()
     private lateinit var binding: FragmentLectorLoginBinding
 
     override fun onCreateView(
@@ -29,9 +28,6 @@ class LectorLoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        viewModel.calendarDatabase = databaseModel.calendarDatabase
-        viewModel.getData()
 
         if (viewModel.checkLogIn(requireContext())) (activity as MainActivity).changeFragment(
             LectorFragment()

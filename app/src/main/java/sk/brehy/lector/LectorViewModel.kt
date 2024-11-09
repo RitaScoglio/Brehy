@@ -2,13 +2,10 @@ package sk.brehy.lector
 
 import android.content.Context
 import android.util.Log
-import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.amulyakhare.textdrawable.TextDrawable
-import com.applandeo.materialcalendarview.CalendarDay
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -30,7 +27,6 @@ class LectorViewModel : ViewModel() {
         calendarDatabase.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val list = mutableMapOf<String, List<People>>()
-                Log.d("lektorov", "data snap")
                 val years = dataSnapshot.children
                 for (year in years) {
                     val y = year.key
@@ -50,6 +46,8 @@ class LectorViewModel : ViewModel() {
                     }
                 }
                 lectorList.value = list
+                Log.d("CLICK", "${lectorList.value}")
+
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -124,44 +122,7 @@ class LectorViewModel : ViewModel() {
 
     }
 
-    fun refreshScreenData(activity: FragmentActivity): MutableList<CalendarDay> {
-        val events = mutableListOf<CalendarDay>()
-        for ((key, value) in lectorList.value!!) {
-            val date = key.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            val name = value.size
-            val calendar = Calendar.getInstance()
-            calendar[date[0].toInt(), date[1].toInt() - 1] = date[2].toInt()
-            val color = if(calendar == Calendar.getInstance()) R.color.red else R.color.brown_dark
-            events.add(CalendarDay(calendar).apply {
-                imageDrawable = TextDrawable.builder()
-                    .beginConfig()
-                    .textColor(ContextCompat.getColor(activity, R.color.brown_superlight))
-                    .bold()
-                    .endConfig()
-                    .buildRound(name.toString(), ContextCompat.getColor(activity, R.color.brown_dark))
-                selectedBackgroundDrawable = TextDrawable.builder()
-                    .beginConfig()
-                    .textColor(ContextCompat.getColor(activity, R.color.brown_superlight))
-                    .bold()
-                    .endConfig()
-                    .buildRound("", ContextCompat.getColor(activity, color))
-            })
-        }
-        if(!events.contains(CalendarDay(Calendar.getInstance())))
-            events.add(CalendarDay(Calendar.getInstance()).apply {
-                selectedBackgroundDrawable = TextDrawable.builder()
-                    .beginConfig()
-                    .textColor(ContextCompat.getColor(activity, R.color.brown_superlight))
-                    .bold()
-                    .endConfig()
-                    .buildRound("", ContextCompat.getColor(activity, R.color.red))
-            })
-        return events
-    }
-
-    fun addNewLector(calendar: Calendar): Pair<String, String> {
-        val date =
-            "${calendar[Calendar.YEAR]}-${(calendar[Calendar.MONTH] + 1)}-${calendar[Calendar.DAY_OF_MONTH]}"
+    fun addNewLector(date:String): Pair<String, String> {
         val current = lectorList.value?.get(date)
         val number: Int = if (current == null) 1 else current.size + 1
         return Pair(number.toString(), date)
