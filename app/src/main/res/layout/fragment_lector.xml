@@ -10,32 +10,61 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.kizitonwose.calendar.view.CalendarView
-            android:id="@+id/calendarView"
-            android:layout_width="match_parent"
+        <CheckBox
+            android:id="@+id/weekModeCheckBox"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:cv_daySize="seventhWidth"
-            app:cv_outDateStyle="endOfGrid"
-            app:cv_dayViewResource="@layout/calendar_day_layout"
-            app:cv_monthHeaderResource="@layout/calendar_day_titles_container"/>
-
-        <ListView
-            android:id="@+id/listviewCalendar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/calendarView"
-            android:divider="@color/brown_superlight" />
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:buttonTint="@color/brown_dark"
+            android:padding="2dp"
+            android:text="Týždenné zobrazenie"
+            android:textColor="@color/brown_dark"
+            android:textSize="18sp" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floatButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/calendarView"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="6dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
             android:src="@drawable/ic_add"
             app:fabSize="mini"
             tools:ignore="ContentDescription" />
+
+        <FrameLayout
+            android:id="@+id/frame_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/weekModeCheckBox">
+
+            <com.kizitonwose.calendar.view.CalendarView
+                android:id="@+id/MonthCalendarView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cv_daySize="seventhWidth"
+                app:cv_dayViewResource="@layout/calendar_day_layout"
+                app:cv_monthHeaderResource="@layout/calendar_day_titles_container"
+                app:cv_outDateStyle="endOfGrid" />
+
+            <com.kizitonwose.calendar.view.WeekCalendarView
+                android:id="@+id/WeekCalendarView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cv_daySize="seventhWidth"
+                app:cv_dayViewResource="@layout/calendar_day_layout"
+                app:cv_weekHeaderResource="@layout/calendar_day_titles_container"
+                app:cv_outDateStyle="endOfGrid" />
+
+        </FrameLayout>
+
+        <ListView
+            android:id="@+id/listviewCalendar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/frame_layout"
+            android:divider="@color/brown_superlight" />
+
     </RelativeLayout>
 
 </FrameLayout>
