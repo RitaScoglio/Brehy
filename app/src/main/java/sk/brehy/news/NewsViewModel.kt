@@ -54,19 +54,13 @@ class NewsViewModel : ViewModel() {
         newsDatabase.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val database = dataSnapshot.children
-                val actualIDs = news.map { it.id }
-                for (record in database) {
-                    if (record.key !in actualIDs)
-                        newsDatabase.child(record.key!!).removeValue()
-                    else {
-                        val entry = news.filter { it.id == record.key }.first()
-                        if (record.child("title").value!! != entry.title)
-                            newsDatabase.child(record.key!!).child("title")
-                                .setValue(entry.title)
-                        else if (record.child("content").value!! != entry.content)
-                            newsDatabase.child(record.key!!).child("content")
-                                .setValue(entry.content)
-                    }
+                for (entry in news) {
+                    newsDatabase.child(entry.id).child("title").setValue(entry.title)
+                    newsDatabase.child(entry.id).child("content").setValue(entry.content)
+                }
+                val newsID = news.map { it.id }
+                database.filter { it.key !in newsID }.forEach { oldEntry ->
+                    newsDatabase.child(oldEntry.key!!).removeValue()
                 }
             }
 
@@ -89,32 +83,41 @@ class NewsViewModel : ViewModel() {
                 val doc = Jsoup.connect("https://farabrehy.sk/aktuality.php").timeout(5000).get()
                 val children = doc.getElementsByAttribute("onmouseover")
                 for (e in children) {
-                    val separate = e.attributes()["onclick"]
-                    val indexStart = separate.indexOf("getElementById") + "getElementById('".length
-                    val expandID =
-                        separate.substring(indexStart, separate.indexOf("'", indexStart + 1))
-                    val expansion = doc.getElementById(expandID)
-                    val title = e.child(0).text()
-                    var content = removeSpecificColor(expansion.children().toString())
-                    content = "<html> <style>" +
-                            "a, strong {" +
-                            "  overflow-wrap: break-word;" +
-                            "  word-wrap: break-word;" +
-                            "  -ms-word-break: break-all;" +
-                            "  word-break: break-all;" +
-                            "  word-break: break-word;" +
-                            "  -ms-hyphens: auto;" +
-                            "  -moz-hyphens: auto;" +
-                            "  -webkit-hyphens: auto;" +
-                            "  hyphens: auto;" +
-                            "}" +
-                            "p, span {margin: 0px !important;" +
-                            "padding-bottom: 8px !important;" +
-                            "text-align: justify;" +
-                            "font-size: 16px !important;" +
-                            "}" +
-                            "</style><body>" + changeImgSize(content, activity) + "</body></html>"
-                    list.add(News(expandID, title, content))
+                    try {
+                        val separate = e.attributes()["onclick"]
+                        val indexStart =
+                            separate.indexOf("getElementById") + "getElementById('".length
+                        val expandID =
+                            separate.substring(indexStart, separate.indexOf("'", indexStart + 1))
+                        val expansion = doc.getElementById(expandID)
+                        val title = e.child(0).text()
+                        var content = removeSpecificColor(expansion.children().toString())
+                        content = "<html> <style>" +
+                                "a, strong {" +
+                                "  overflow-wrap: break-word;" +
+                                "  word-wrap: break-word;" +
+                                "  -ms-word-break: break-all;" +
+                                "  word-break: break-all;" +
+                                "  word-break: break-word;" +
+                                "  -ms-hyphens: auto;" +
+                                "  -moz-hyphens: auto;" +
+                                "  -webkit-hyphens: auto;" +
+                                "  hyphens: auto;" +
+                                "}" +
+                                "p, span {margin: 0px !important;" +
+                                "padding-bottom: 8px !important;" +
+                                "text-align: justify;" +
+                                "font-size: 16px !important;" +
+                                "}" +
+                                "</style><body>" + changeImgSize(
+                            content,
+                            activity
+                        ) + "</body></html>"
+
+                        list.add(News(expandID, title, content))
+                    } catch (exception: Exception) {
+                        Log.d("NewsViewModel:AddList", exception.message.toString())
+                    }
                 }
             } catch (exception: Exception) {
                 Log.d("NewsViewModel", exception.message.toString())
