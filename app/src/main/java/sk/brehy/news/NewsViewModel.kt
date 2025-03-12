@@ -83,7 +83,6 @@ class NewsViewModel : ViewModel() {
                 val doc = Jsoup.connect("https://farabrehy.sk/aktuality.php").timeout(5000).get()
                 val children = doc.getElementsByAttribute("onmouseover")
                 for (e in children) {
-                    try {
                         val separate = e.attributes()["onclick"]
                         val indexStart =
                             separate.indexOf("getElementById") + "getElementById('".length
@@ -92,6 +91,7 @@ class NewsViewModel : ViewModel() {
                         val expansion = doc.getElementById(expandID)
                         val title = e.child(0).text()
                         var content = removeSpecificColor(expansion.children().toString())
+                    try {
                         content = "<html> <style>" +
                                 "a, strong {" +
                                 "  overflow-wrap: break-word;" +
@@ -117,6 +117,7 @@ class NewsViewModel : ViewModel() {
                         list.add(News(expandID, title, content))
                     } catch (exception: Exception) {
                         Log.d("NewsViewModel:AddList", exception.message.toString())
+                        Log.d("NewsViewModel:AddList_text", content)
                     }
                 }
             } catch (exception: Exception) {
@@ -146,14 +147,23 @@ class NewsViewModel : ViewModel() {
         }
     }
 
-    fun changeImgSize(html: String, activity: FragmentActivity): String {
-        var img = html.indexOf("img")
+    fun changeImgSize(HTML: String, activity: FragmentActivity): String {
+        var html = HTML
+        var alt = html.indexOf("alt=\"")
+        if (alt != -1){
+            while (alt >= 0) {
+                val end = html.indexOf("\"", alt + 5) + 1
+                html = html.removeRange(alt, end)
+                alt = html.indexOf("alt=\"", alt + 1)
+            }
+        }
+        var img = html.indexOf("<img")
         if (img != -1) {
             val list = mutableListOf<Int>()
             val newHtml = StringBuffer(html)
             while (img >= 0) {
-                list.add(img + 3)
-                img = html.indexOf("img", img + 1)
+                list.add(img + 4)
+                img = html.indexOf("<img", img + 1)
             }
             val displayMetrics = DisplayMetrics()
             (activity as MainActivity).windowManager.defaultDisplay.getMetrics(displayMetrics)
