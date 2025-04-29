@@ -112,9 +112,7 @@ class LectorFragment : Fragment() {
     }
 
     private fun setCalendars() {
-
-        val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
-        binding.weekModeCheckBox.isChecked = sharedPref.getBoolean("weekMode", false)
+        binding.weekModeCheckBox.isChecked = lectorModel.getCheckBoxValue(requireContext())
 
         binding.MonthCalendarView.isInvisible = binding.weekModeCheckBox.isChecked
         binding.WeekCalendarView.isInvisible = !binding.weekModeCheckBox.isChecked
@@ -395,19 +393,15 @@ class LectorFragment : Fragment() {
         override fun onCheckedChanged(buttonView: CompoundButton, monthToWeek: Boolean) {
             // We want the first visible day to remain visible after the
             // change so we scroll to the position on the target calendar.
-            val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
-            with (sharedPref.edit()) {
-                putBoolean("weekMode", binding.weekModeCheckBox.isChecked)
-                apply()
-            }
+            lectorModel.saveCheckBoxValue(requireContext(), binding.weekModeCheckBox.isChecked)
 
             if (monthToWeek) {
-                val targetDate = binding.WeekCalendarView.findFirstVisibleDay()?.date ?: return
+                //val targetDate = binding.WeekCalendarView.findFirstVisibleDay()?.date ?: return
                 binding.WeekCalendarView.scrollToWeek(selectedDay)
             } else {
                 // It is possible to have two months in the visible week (30 | 31 | 1 | 2 | 3 | 4 | 5)
                 // We always choose the second one. Please use what works best for your use case.
-                val targetMonth = binding.WeekCalendarView.findLastVisibleDay()?.date?.yearMonth ?: return
+                //val targetMonth = binding.WeekCalendarView.findLastVisibleDay()?.date?.yearMonth ?: return
                 binding.MonthCalendarView.scrollToMonth(selectedDay.yearMonth)
             }
 

@@ -92,6 +92,17 @@ class LectorViewModel : ViewModel() {
         }
     }
 
+    fun getCheckBoxValue(context: Context): Boolean {
+        val settings = context.getSharedPreferences("FarnostBrehy", 0)
+        return settings.getBoolean("weekMode", false)
+    }
+
+    fun saveCheckBoxValue(context: Context, value:Boolean) {
+        val settings = context.getSharedPreferences("FarnostBrehy", 0)
+        val editor = settings.edit()
+        editor.putBoolean("weekMode", value).apply()
+    }
+
     fun checkLogIn(context: Context): Boolean {
         val settings = context.getSharedPreferences("FarnostBrehy", 0)
         return settings.getBoolean("logedIn", false)
