@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import sk.brehy.contact.ContactFragment
 import sk.brehy.databinding.MainActivityBinding
+import sk.brehy.exception.BrehyException
 import sk.brehy.intro.IntroFragment
 import sk.brehy.lector.LectorLoginFragment
 import sk.brehy.massInformation.MassInformationFragment
@@ -31,53 +32,32 @@ class MainActivity : AppCompatActivity() {
     private lateinit var massInfoModel: MassInformationViewModel
     private lateinit var mainModel: MainViewModel
 
-    /* private val onBackPressedCallback = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-            when (this@MainActivity.supportFragmentManager.backStackEntryCount) {
-                0 -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                        this@MainActivity.finishAndRemoveTask()
-                    else
-                        this@MainActivity.finish()
-                    this@MainActivity.onDestroy()
-                }
-                1 -> {
-                    showToast(
-                        "Pre skončenie aplikácie stlačte tlačídlo \"Späť\" ešte raz.",
-                        R.drawable.border_dark,
-                        R.color.brown_light
-                    )
-                    this@MainActivity.supportFragmentManager.popBackStack()
-                }
-                else -> this@MainActivity.supportFragmentManager.popBackStack()
-            }
-        }
-    }*/
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = MainActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            binding = MainActivityBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        //onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+            mainModel = ViewModelProvider(this)[MainViewModel::class.java]
+            mainModel.initiateFirebase()
+            mainModel.initiateFirebaseAuth(this)
+            mainModel.initiateGoogleMessagingService(this)
 
-        mainModel = ViewModelProvider(this)[MainViewModel::class.java]
-        mainModel.initiateFirebase()
-        mainModel.initiateFirebaseAuth(this)
-        mainModel.initiateGoogleMessagingService(this)
+            checkDrawOverlayPermission()
+            startDownloadingMassInformation()
 
-        checkDrawOverlayPermission()
-        startDownloadingMassInformation()
-
-        if (savedInstanceState == null)
-            changeFragment(IntroFragment(), "intro")
-        setBottomNavigation()
-        askNotificationPermission()
+            if (savedInstanceState == null)
+                changeFragment(IntroFragment(), "intro")
+            setBottomNavigation()
+            askNotificationPermission()
+        } catch (e: Exception) {
+            throw BrehyException("Error in MainActivity onCreate", e)
+        }
     }
 
     val REQUEST_CODE = 10101
 
-    fun checkDrawOverlayPermission(): Boolean {
+    private fun checkDrawOverlayPermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true
         }
@@ -99,14 +79,18 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE) {
             if (Settings.canDrawOverlays(this)) {
-                //startService(Intent(this, PowerButtonService::class.java))
+                // startService(Intent(this, PowerButtonService::class.java))
             }
         }
     }
 
     private fun startDownloadingMassInformation() {
-        massInfoModel = ViewModelProvider(this)[MassInformationViewModel::class.java]
-        massInfoModel.getAvailableMassInformation(this)
+        try {
+            massInfoModel = ViewModelProvider(this)[MassInformationViewModel::class.java]
+            massInfoModel.getAvailableMassInformation(this)
+        } catch (e: Exception) {
+            throw BrehyException("Error loading MassInformation", e)
+        }
     }
 
     private fun setBottomNavigation() {
@@ -148,29 +132,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun changeFragment(fragment: Fragment, from: String = "") {
-        if (from != "")
-            supportFragmentManager.beginTransaction()
-                .setCustomAnimations(
-                    R.anim.slide_in,
-                    R.anim.fade_out,
-                    R.anim.fade_in,
-                    R.anim.slide_out
-                )
-                .replace(R.id.frame_layout, fragment)
-                .addToBackStack(from)
-                .setReorderingAllowed(true)
-                .commit()
-        else
-            supportFragmentManager.beginTransaction()
-                .setCustomAnimations(
-                    R.anim.slide_in,
-                    R.anim.fade_out,
-                    R.anim.fade_in,
-                    R.anim.slide_out
-                )
-                .replace(R.id.frame_layout, fragment)
-                .setReorderingAllowed(true)
-                .commit()
+        try {
+            if (from.isNotEmpty())
+                supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(
+                        R.anim.slide_in,
+                        R.anim.fade_out,
+                        R.anim.fade_in,
+                        R.anim.slide_out
+                    )
+                    .replace(R.id.frame_layout, fragment)
+                    .addToBackStack(from)
+                    .setReorderingAllowed(true)
+                    .commit()
+            else
+                supportFragmentManager.beginTransaction()
+                    .setCustomAnimations(
+                        R.anim.slide_in,
+                        R.anim.fade_out,
+                        R.anim.fade_in,
+                        R.anim.slide_out
+                    )
+                    .replace(R.id.frame_layout, fragment)
+                    .setReorderingAllowed(true)
+                    .commit()
+        } catch (e: Exception) {
+            throw BrehyException("Error changing fragment to $from", e)
+        }
     }
 
     fun showToast(message: String, backgroundColor: Int, textColor: Int) {
@@ -187,25 +175,20 @@ class MainActivity : AppCompatActivity() {
         myToast.show()
     }
 
-    // [START ask_post_notifications]
-    // Declare the launcher at the top of your Activity/Fragment:
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { _: Boolean ->
     }
 
     private fun askNotificationPermission() {
-        // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
                 PackageManager.PERMISSION_GRANTED
             ) {
-                // FCM SDK (and your app) can post notifications.
+                // Permission granted, do nothing special
             } else {
-                // Directly ask for the permission
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
-    // [END ask_post_notifications] }
 }

@@ -6,12 +6,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import sk.brehy.R
+import sk.brehy.exception.BrehyException
 
 class IntroFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_uvod, container, false)
+        return try {
+            inflater.inflate(R.layout.fragment_uvod, container, false)
+        } catch (e: Exception) {
+            throw BrehyException("Failed to inflate IntroFragment layout.", e)
+        }
     }
 }

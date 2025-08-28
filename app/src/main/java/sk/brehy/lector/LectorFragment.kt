@@ -1,10 +1,9 @@
 package sk.brehy.lector
 
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.app.Dialog
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -28,15 +27,12 @@ import com.kizitonwose.calendar.core.CalendarMonth
 import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.Week
 import com.kizitonwose.calendar.core.WeekDay
-import com.kizitonwose.calendar.core.WeekDayPosition
 import com.kizitonwose.calendar.core.atStartOfMonth
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.core.yearMonth
-import com.kizitonwose.calendar.view.CalendarView
 import com.kizitonwose.calendar.view.MonthDayBinder
 import com.kizitonwose.calendar.view.MonthHeaderFooterBinder
 import com.kizitonwose.calendar.view.ViewContainer
-import com.kizitonwose.calendar.view.WeekCalendarView
 import com.kizitonwose.calendar.view.WeekDayBinder
 import com.kizitonwose.calendar.view.WeekHeaderFooterBinder
 import sk.brehy.MainActivity
@@ -44,8 +40,8 @@ import sk.brehy.MainViewModel
 import sk.brehy.adapters.PeopleAdapter
 import sk.brehy.R
 import sk.brehy.databinding.FragmentLectorBinding
+import sk.brehy.exception.BrehyException
 import java.time.LocalDate
-import java.time.Year
 import java.time.YearMonth
 
 class LectorFragment : Fragment() {
@@ -78,36 +74,46 @@ class LectorFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentLectorBinding.inflate(inflater, container, false)
-        return binding.root
+        return try {
+            binding = FragmentLectorBinding.inflate(inflater, container, false)
+            binding.root
+        } catch (e: Exception) {
+            throw BrehyException("Failed to inflate layout for FragmentLectorBinding.", e)
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         lectorModel.weekends.observe(viewLifecycleOwner) { weekends ->
-            //binding.calendarView.setHighlightedDays(weekends) //TODO
+            // binding.calendarView.setHighlightedDays(weekends) //TODO
         }
 
         lectorModel.calendarDatabase = databaseModel.calendarDatabase
+            ?: throw BrehyException("Calendar database is not initialized in databaseModel.")
+
         lectorModel.getData()
 
-        lectorModel.lectorList.observe(viewLifecycleOwner) { _ ->
+        lectorModel.lectorList.observe(viewLifecycleOwner) {
             setCalendars()
             writeToListView(LocalDate.now().toString())
         }
 
-        /*lectorModel.highlightWeekends()*/
         binding.floatButton.setOnClickListener {
             if (MainViewModel().isConnectedToInternet(requireContext())) {
-                val (number, date) = lectorModel.addNewLector(selectedDay.toString().replace("-0", "-"))
+                val (number, date) = try {
+                    lectorModel.addNewLector(selectedDay.toString().replace("-0", "-"))
+                } catch (e: Exception) {
+                    throw BrehyException("Failed to add new lector.", e)
+                }
                 openDialog(number, date, "", "Pridať lektora")
-            } else
-                (activity as MainActivity).showToast(
+            } else {
+                (activity as? MainActivity)?.showToast(
                     "Nie ste pripojený na internet.",
                     R.drawable.network_background,
                     R.color.brown_light
-                )
+                ) ?: throw BrehyException("Activity is not MainActivity or is null.")
+            }
         }
     }
 
@@ -130,7 +136,11 @@ class LectorFragment : Fragment() {
         binding.MonthCalendarView.scrollToMonth(currentMonth)
 
         setWeekCalendar(currentDate)
-        binding.WeekCalendarView.setup(startMonth.atStartOfMonth(), endMonth.atEndOfMonth(), firstDayOfWeek)
+        binding.WeekCalendarView.setup(
+            startMonth.atStartOfMonth(),
+            endMonth.atEndOfMonth(),
+            firstDayOfWeek
+        )
         binding.WeekCalendarView.scrollToWeek(currentDate)
     }
 
@@ -146,91 +156,59 @@ class LectorFragment : Fragment() {
 
                 if (data.date == currentDate) {
                     container.textView.setTextColor(
-                        ContextCompat.getColor(
-                            requireActivity(),
-                            R.color.red
-                        )
+                        ContextCompat.getColor(requireActivity(), R.color.red)
                     )
                 }
 
-                if (date in lectorModel.lectorList.value!!.keys) {
-                    container.numberOfLectors.text =
-                        lectorModel.lectorList.value!![date]!!.size.toString()
-                    if (data.date == selectedDay) {
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round_red
-                            )
-                        )
-                    } else {
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round
-                            )
-                        )
-                    }
+                val lectorMap = lectorModel.lectorList.value
+                    ?: throw BrehyException("Lector list is null during binding.")
+
+                if (lectorMap.containsKey(date)) {
+                    val list = lectorMap[date]
+                        ?: throw BrehyException("No lector data found for date $date.")
+                    container.numberOfLectors.text = list.size.toString()
+                    container.numberOfLectors.setBackgroundResource(
+                        if (data.date == selectedDay) R.drawable.round_red else R.drawable.round
+                    )
                 } else {
-                    if (data.date == selectedDay) {
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round_red
-                            )
-                        )
-                    } else {
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round_invisible
-                            )
-                        )
-                    }
+                    container.numberOfLectors.setBackgroundResource(
+                        if (data.date == selectedDay) R.drawable.round_red else R.drawable.round_invisible
+                    )
                 }
 
                 if (data.position != DayPosition.MonthDate) {
                     container.textView.setTextColor(
-                        ContextCompat.getColor(
-                            requireActivity(),
-                            R.color.brown_semilight
-                        )
+                        ContextCompat.getColor(requireActivity(), R.color.brown_semilight)
                     )
-                    if (container.numberOfLectors.text != "") {
+                    if (container.numberOfLectors.text.isNotEmpty()) {
                         container.numberOfLectors.setTextColor(
-                            ContextCompat.getColor(
-                                requireActivity(),
-                                R.color.brown
-                            )
+                            ContextCompat.getColor(requireActivity(), R.color.brown)
                         )
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round_light
-                            )
-                        )
+                        container.numberOfLectors.setBackgroundResource(R.drawable.round_light)
                     }
                 }
             }
         }
-        binding.MonthCalendarView.monthHeaderBinder = object :
-            MonthHeaderFooterBinder<MonthViewContainer> {
-            override fun create(view: View) = MonthViewContainer(view)
-            override fun bind(container: MonthViewContainer, data: CalendarMonth) {
-                container.monthTitle.text =
-                    "${MONTHS[data.yearMonth.monthValue - 1]} ${data.yearMonth.year}"
-                container.daysContainer.children
-                    .map { it as TextView }
-                    .forEachIndexed { index, textView ->
-                        textView.text = DAYS[index]
+
+        binding.MonthCalendarView.monthHeaderBinder =
+            object : MonthHeaderFooterBinder<MonthViewContainer> {
+                override fun create(view: View) = MonthViewContainer(view)
+
+                override fun bind(container: MonthViewContainer, data: CalendarMonth) {
+                    container.monthTitle.text =
+                        "${MONTHS[data.yearMonth.monthValue - 1]} ${data.yearMonth.year}"
+                    container.daysContainer.children.map {
+                        it as? TextView ?: throw BrehyException("Day header view is not a TextView")
                     }
+                        .forEachIndexed { index, textView ->
+                            textView.text = DAYS[index]
+                        }
+                }
             }
-        }
     }
 
     private fun setWeekCalendar(currentDate: LocalDate) {
         binding.WeekCalendarView.dayBinder = object : WeekDayBinder<WeekDayViewContainer> {
-
             override fun create(view: View) = WeekDayViewContainer(view)
 
             override fun bind(container: WeekDayViewContainer, data: WeekDay) {
@@ -241,186 +219,144 @@ class LectorFragment : Fragment() {
 
                 if (data.date == currentDate) {
                     container.textView.setTextColor(
-                        ContextCompat.getColor(
-                            requireActivity(),
-                            R.color.red
-                        )
+                        ContextCompat.getColor(requireActivity(), R.color.red)
                     )
                 }
 
-                if (date in lectorModel.lectorList.value!!.keys) {
-                    container.numberOfLectors.text =
-                        lectorModel.lectorList.value!![date]!!.size.toString()
-                    if (data.date == selectedDay) {
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round_red
-                            )
-                        )
-                    } else {
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round
-                            )
-                        )
-                    }
+                val lectorMap = lectorModel.lectorList.value
+                    ?: throw BrehyException("Lector list is null during week binding.")
+
+                if (lectorMap.containsKey(date)) {
+                    val list = lectorMap[date]
+                        ?: throw BrehyException("No lector data for date $date.")
+                    container.numberOfLectors.text = list.size.toString()
+                    container.numberOfLectors.setBackgroundResource(
+                        if (data.date == selectedDay) R.drawable.round_red else R.drawable.round
+                    )
                 } else {
-                    if (data.date == selectedDay) {
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round_red
-                            )
-                        )
-                    } else {
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round_invisible
-                            )
-                        )
-                    }
-                }
-
-                /*if (data.position != DayPosition.MonthDate) {
-                    container.textView.setTextColor(
-                        ContextCompat.getColor(
-                            requireActivity(),
-                            R.color.brown_semilight
-                        )
+                    container.numberOfLectors.setBackgroundResource(
+                        if (data.date == selectedDay) R.drawable.round_red else R.drawable.round_invisible
                     )
-                    if (container.numberOfLectors.text != "") {
-                        container.numberOfLectors.setTextColor(
-                            ContextCompat.getColor(
-                                requireActivity(),
-                                R.color.brown
-                            )
-                        )
-                        container.numberOfLectors.setBackgroundDrawable(
-                            ContextCompat.getDrawable(
-                                requireActivity(),
-                                R.drawable.round_light
-                            )
-                        )
-                    }
-                }*/
+                }
             }
         }
 
-        binding.WeekCalendarView.weekHeaderBinder = object :
-            WeekHeaderFooterBinder<WeekViewContainer> {
-            override fun create(view: View) = WeekViewContainer(view)
-            override fun bind(container: WeekViewContainer, data: Week) {
-                val monthBegin = data.days.first().date.monthValue - 1
-                val monthEnd = data.days.last().date.monthValue - 1
-                val yearBegin = data.days.first().date.year
-                val yearEnd = data.days.last().date.year
-                val month = monthBegin.let { if(it != monthEnd)
-                    "${MONTHS[monthBegin]}\\${MONTHS[monthEnd]}"
-                else MONTHS[monthBegin] }
-                val year = yearBegin.let { if(it != yearEnd)
-                    "${yearBegin}\\${yearEnd}"
-                else yearBegin}
-                container.monthTitle.text = "$month $year"
-                container.daysContainer.children
-                    .map { it as TextView }
-                    .forEachIndexed { index, textView ->
-                        textView.text = DAYS[index]
+        binding.WeekCalendarView.weekHeaderBinder =
+            object : WeekHeaderFooterBinder<WeekViewContainer> {
+                override fun create(view: View) = WeekViewContainer(view)
+
+                override fun bind(container: WeekViewContainer, data: Week) {
+                    val days = data.days
+                    if (days.isEmpty()) throw BrehyException("Week data contains no days.")
+                    val monthBegin = days.first().date.monthValue - 1
+                    val monthEnd = days.last().date.monthValue - 1
+                    val yearBegin = days.first().date.year
+                    val yearEnd = days.last().date.year
+                    val month =
+                        if (monthBegin != monthEnd) "${MONTHS[monthBegin]}\\${MONTHS[monthEnd]}" else MONTHS[monthBegin]
+                    val year = if (yearBegin != yearEnd) "$yearBegin\\$yearEnd" else "$yearBegin"
+
+                    container.monthTitle.text = "$month $year"
+                    container.daysContainer.children.map {
+                        it as? TextView ?: throw BrehyException("Header item is not a TextView")
                     }
+                        .forEachIndexed { index, textView ->
+                            textView.text = DAYS[index]
+                        }
+                }
             }
-        }
     }
 
     fun writeToListView(date: String) {
-        val people = lectorModel.lectorList.value!![date]
+        val lectorMap = lectorModel.lectorList.value
+            ?: throw BrehyException("Lector list is null when trying to display data for date: $date")
+        val people = lectorMap[date]
         if (people != null) {
             binding.listviewCalendar.adapter = PeopleAdapter(requireActivity(), people)
             binding.listviewCalendar.setOnItemClickListener { _, _, position, _ ->
-                val people = people[position]
-                if (MainViewModel().isConnectedToInternet(requireContext()))
+                val person = people.getOrNull(position)
+                    ?: throw BrehyException("No person found at position $position on date $date.")
+
+                if (MainViewModel().isConnectedToInternet(requireContext())) {
                     openDialog(
-                        people.number,
+                        person.number,
                         date,
-                        people.name,
+                        person.name,
                         "Upraviť lektora"
                     )
-                else
-                    (activity as MainActivity).showToast(
+                } else {
+                    (activity as? MainActivity)?.showToast(
                         "Nie ste pripojený na internet.",
                         R.drawable.network_background,
                         R.color.brown_light
-                    )
+                    ) ?: throw BrehyException("Activity is not MainActivity or is null.")
+                }
             }
-        } else binding.listviewCalendar.adapter = null
+        } else {
+            binding.listviewCalendar.adapter = null
+        }
     }
 
+    @SuppressLint("SetTextI18n")
     internal fun openDialog(number: String, date: String, name: String, title: String) {
         val dialog = Dialog(requireContext())
         dialog.setContentView(R.layout.lector_dialog)
         val keys = date.split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        if (keys.size != 3)
+            throw BrehyException("Date format is incorrect. Expected YYYY-MM-DD, got: $date")
         val layout = WindowManager.LayoutParams()
-        layout.copyFrom(dialog.window!!.attributes)
+        layout.copyFrom(
+            dialog.window?.attributes
+                ?: throw BrehyException("Dialog window is null.")
+        )
         layout.width = WindowManager.LayoutParams.MATCH_PARENT
         val titleView = dialog.findViewById<TextView>(R.id.head)
+            ?: throw BrehyException("Dialog title view is missing.")
         titleView.text = title
         val dateView = dialog.findViewById<TextView>(R.id.date)
-        val text =
-            keys[2] + ". " + resources.getStringArray(R.array.material_calendar_months_array)[keys[1].toInt() - 1] + " " + keys[0]
-        dateView.text = text
+            ?: throw BrehyException("Dialog date view is missing.")
+        dateView.text =
+            "${keys[2]}. ${resources.getStringArray(R.array.material_calendar_months_array)[keys[1].toInt() - 1]} ${keys[0]}"
         val numberView = dialog.findViewById<TextView>(R.id.number)
+            ?: throw BrehyException("Dialog number view is missing.")
         numberView.text = "Poradie: $number"
-        val edit = dialog.findViewById<View>(R.id.name) as EditText
+
+        val edit = dialog.findViewById<EditText>(R.id.name)
+            ?: throw BrehyException("Dialog EditText is missing.")
         edit.setText(name)
-        val positive = dialog.findViewById<View>(R.id.positive) as Button
-        positive.setOnClickListener { _: View? ->
-            lectorModel.dialogPositiveButton(
-                edit.text.toString(),
-                date,
-                number,
-                keys
-            )
+
+        val positive = dialog.findViewById<Button>(R.id.positive)
+            ?: throw BrehyException("Dialog positive button is missing.")
+        positive.setOnClickListener {
+            lectorModel.dialogPositiveButton(edit.text.toString(), date, number, keys)
             dialog.dismiss()
         }
-        val negative = dialog.findViewById<View>(R.id.negative) as Button
+        val negative = dialog.findViewById<Button>(R.id.negative)
+            ?: throw BrehyException("Dialog negative button is missing.")
         negative.setOnClickListener { dialog.dismiss() }
+
         dialog.show()
-        dialog.window!!.attributes = layout
+        dialog.window?.attributes = layout
     }
 
-    private val weekModeToggled = object : CompoundButton.OnCheckedChangeListener {
-        override fun onCheckedChanged(buttonView: CompoundButton, monthToWeek: Boolean) {
-            // We want the first visible day to remain visible after the
-            // change so we scroll to the position on the target calendar.
+    private val weekModeToggled =
+        CompoundButton.OnCheckedChangeListener { buttonView, monthToWeek ->
             lectorModel.saveCheckBoxValue(requireContext(), binding.weekModeCheckBox.isChecked)
-
             if (monthToWeek) {
-                //val targetDate = binding.WeekCalendarView.findFirstVisibleDay()?.date ?: return
                 binding.WeekCalendarView.scrollToWeek(selectedDay)
             } else {
-                // It is possible to have two months in the visible week (30 | 31 | 1 | 2 | 3 | 4 | 5)
-                // We always choose the second one. Please use what works best for your use case.
-                //val targetMonth = binding.WeekCalendarView.findLastVisibleDay()?.date?.yearMonth ?: return
                 binding.MonthCalendarView.scrollToMonth(selectedDay.yearMonth)
             }
-
             val weekHeight = binding.WeekCalendarView.height
-            // If OutDateStyle is EndOfGrid, you could simply multiply weekHeight by 6.
             val visibleMonthHeight = weekHeight *
                     binding.MonthCalendarView.findFirstVisibleMonth()?.weekDays.orEmpty().count()
-
             val oldHeight = if (monthToWeek) visibleMonthHeight else weekHeight
             val newHeight = if (monthToWeek) weekHeight else visibleMonthHeight
-
-            // Animate calendar height changes.
             val animator = ValueAnimator.ofInt(oldHeight, newHeight)
             animator.addUpdateListener { anim ->
                 binding.MonthCalendarView.updateLayoutParams {
                     height = anim.animatedValue as Int
                 }
-                // A bug is causing the month calendar to not redraw its children
-                // with the updated height during animation, this is a workaround.
                 binding.MonthCalendarView.children.forEach { child ->
                     child.requestLayout()
                 }
@@ -437,17 +373,12 @@ class LectorFragment : Fragment() {
                     binding.WeekCalendarView.isVisible = true
                     binding.MonthCalendarView.isInvisible = true
                 } else {
-                    // Allow the month calendar to be able to expand to 6-week months
-                    // in case we animated using the height of a visible 5-week month.
-                    // Not needed if OutDateStyle is EndOfGrid.
                     binding.MonthCalendarView.updateLayoutParams { height = WRAP_CONTENT }
                 }
-                //updateTitle()
             }
             animator.duration = 250
             animator.start()
         }
-    }
 }
 
 class DayViewContainer(view: View) : ViewContainer(view) {
@@ -458,7 +389,7 @@ class DayViewContainer(view: View) : ViewContainer(view) {
 
     init {
         view.setOnClickListener {
-            var oldSelected = fragment.selectedDay
+            val oldSelected = fragment.selectedDay
             fragment.selectedDay = day.date
             if (day.position == DayPosition.MonthDate) {
                 fragment.binding.MonthCalendarView.notifyDateChanged(oldSelected)
@@ -478,34 +409,63 @@ class DayViewContainer(view: View) : ViewContainer(view) {
 }
 
 class WeekDayViewContainer(view: View) : ViewContainer(view) {
-    val textView = view.findViewById<TextView>(R.id.calendarDayText)
-    val numberOfLectors = view.findViewById<TextView>(R.id.number_lectors)
+
+    val textView: TextView = view.findViewById(R.id.calendarDayText)
+        ?: throw BrehyException("TextView with id R.id.calendarDayText not found in WeekDayViewContainer.")
+
+    val numberOfLectors: TextView = view.findViewById(R.id.number_lectors)
+        ?: throw BrehyException("TextView with id R.id.number_lectors not found in WeekDayViewContainer.")
+
     lateinit var day: WeekDay
     lateinit var fragment: LectorFragment
 
     init {
         view.setOnClickListener {
-            var oldSelected = fragment.selectedDay
+            if (!::day.isInitialized) {
+                throw BrehyException("WeekDayViewContainer: 'day' property was not initialized before click.")
+            }
+            if (!::fragment.isInitialized) {
+                throw BrehyException("WeekDayViewContainer: 'fragment' property was not initialized before click.")
+            }
+
+            val oldSelected = fragment.selectedDay
             fragment.selectedDay = day.date
-            fragment.binding.WeekCalendarView.notifyDateChanged(oldSelected)
-            fragment.binding.WeekCalendarView.notifyDateChanged(day.date)
+
+            val weekCalendarView = fragment.binding.WeekCalendarView
+                ?: throw BrehyException("WeekCalendarView binding is null in WeekDayViewContainer.")
+
+            weekCalendarView.notifyDateChanged(oldSelected)
+            weekCalendarView.notifyDateChanged(day.date)
+
             notifyMonthDateChanged(oldSelected, day.date)
+
             fragment.writeToListView(day.date.toString().replace("-0", "-"))
         }
     }
 
     private fun notifyMonthDateChanged(oldSelected: LocalDate, date: LocalDate) {
-        fragment.binding.MonthCalendarView.notifyDateChanged(oldSelected)
-        fragment.binding.MonthCalendarView.notifyDateChanged(date)
+        val monthCalendarView = fragment.binding.MonthCalendarView
+            ?: throw BrehyException("MonthCalendarView binding is null in WeekDayViewContainer.")
+
+        monthCalendarView.notifyDateChanged(oldSelected)
+        monthCalendarView.notifyDateChanged(date)
     }
 }
 
 class WeekViewContainer(view: View) : ViewContainer(view) {
-    val monthTitle = view.findViewById<TextView>(R.id.month_title)
-    val daysContainer = view.findViewById<ViewGroup>(R.id.days_container) as ViewGroup
+
+    val monthTitle: TextView = view.findViewById(R.id.month_title)
+        ?: throw BrehyException("TextView with id R.id.month_title not found in WeekViewContainer.")
+
+    val daysContainer: ViewGroup = view.findViewById(R.id.days_container) as? ViewGroup
+        ?: throw BrehyException("ViewGroup with id R.id.days_container not found or is not a ViewGroup in WeekViewContainer.")
 }
 
 class MonthViewContainer(view: View) : ViewContainer(view) {
-    val monthTitle = view.findViewById<TextView>(R.id.month_title)
-    val daysContainer = view.findViewById<ViewGroup>(R.id.days_container) as ViewGroup
+
+    val monthTitle: TextView = view.findViewById(R.id.month_title)
+        ?: throw BrehyException("TextView with id R.id.month_title not found in MonthViewContainer.")
+
+    val daysContainer: ViewGroup = view.findViewById(R.id.days_container) as? ViewGroup
+        ?: throw BrehyException("ViewGroup with id R.id.days_container not found or is not a ViewGroup in MonthViewContainer.")
 }

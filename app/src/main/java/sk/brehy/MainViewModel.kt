@@ -11,8 +11,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
-import java.util.*
-
+import sk.brehy.exception.BrehyException
+import androidx.core.content.edit
 
 open class MainViewModel : ViewModel() {
 
@@ -20,63 +20,81 @@ open class MainViewModel : ViewModel() {
     lateinit var calendarDatabase: DatabaseReference
 
     internal fun initiateFirebase() {
+        try {
             val database = FirebaseDatabase.getInstance(Secret.firebase.url)
             database.setPersistenceEnabled(true)
-            newsDatabase = database.getReference("aktuality")
-            newsDatabase.keepSynced(true)
-            calendarDatabase = database.getReference("kalendar")
-            calendarDatabase.keepSynced(true)
-        //write
-        //databaseReference.child("try").setValue("trying")
-        //read
-        /* myRef.addValueEventListener(object: ValueEventListener {
-             override fun onDataChange(snapshot: DataSnapshot) {
-                 // This method is called once with the initial value and again
-                 // whenever data at this location is updated.
-                 val value = snapshot.getValue<String>()
-                 Log.d("mValue", "Value is: " + value)
-             }
-             override fun onCancelled(error: DatabaseError) {
-                 Log.w("mValue", "Failed to read value.", error.toException())
-             }
-         })*/
+            try {
+                newsDatabase = database.getReference("aktuality")
+                newsDatabase.keepSynced(true)
+            } catch (e: Exception) {
+                throw BrehyException("Error initializing newsDatabase", e)
+            }
+            try {
+                calendarDatabase = database.getReference("kalendar")
+                calendarDatabase.keepSynced(true)
+            } catch (e: Exception) {
+                throw BrehyException("Error initializing calendarDatabase", e)
+            }
+        } catch (e: Exception) {
+            throw BrehyException("Error initializing FirebaseDatabase", e)
+        }
     }
 
     fun initiateFirebaseAuth(activity: Activity) {
-        val auth = FirebaseAuth.getInstance()
-        auth.signInWithEmailAndPassword(Secret.firebase.email, Secret.firebase.password)
-            .addOnCompleteListener(activity) { task ->
-                if (task.isSuccessful) {
-                    Log.d("FirebaseAuth", "createUserWithEmail:success")
-                } else {
-                    Log.e("FATAL", "createUserWithEmail:failure", task.exception)
+        try {
+            val auth = FirebaseAuth.getInstance()
+            auth.signInWithEmailAndPassword(Secret.firebase.email, Secret.firebase.password)
+                .addOnCompleteListener(activity) { task ->
+                    if (task.isSuccessful) {
+                        Log.d("FirebaseAuth", "createUserWithEmail:success")
+                    } else {
+                        // We only log here, but consider throwing if needed
+                        Log.e("FATAL", "createUserWithEmail:failure", task.exception)
+                    }
                 }
-            }
+        } catch (e: Exception) {
+            throw BrehyException("Error initializing FirebaseAuth", e)
+        }
     }
 
     fun initiateGoogleMessagingService(context: Context) {
-        val settings = context.getSharedPreferences("FarnostBrehy", 0)
-        val subscribed = settings.getBoolean("subscribed", false)
-        if (!subscribed) FirebaseMessaging.getInstance().subscribeToTopic("aktuality")
-        settings.edit().putBoolean("subscribed", true).apply()
+        try {
+            val settings = context.getSharedPreferences("FarnostBrehy", 0)
+            val subscribed = settings.getBoolean("subscribed", false)
+            if (!subscribed) {
+                try {
+                    FirebaseMessaging.getInstance().subscribeToTopic("aktuality")
+                } catch (e: Exception) {
+                    throw BrehyException("Error subscribing to topic 'aktuality'", e)
+                }
+            }
+            settings.edit { putBoolean("subscribed", true) }
+        } catch (e: Exception) {
+            throw BrehyException("Error initializing Google Messaging Service", e)
+        }
     }
 
     fun isConnectedToInternet(context: Context): Boolean {
-        val connectivityManager =
-            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val network = connectivityManager.activeNetwork ?: return false
-            val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-            return when {
-                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-                else -> false
+        try {
+            val connectivityManager =
+                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val network = connectivityManager.activeNetwork ?: return false
+                val activeNetwork =
+                    connectivityManager.getNetworkCapabilities(network) ?: return false
+                when {
+                    activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                    activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                    else -> false
+                }
+            } else {
+                @Suppress("DEPRECATION") val networkInfo =
+                    connectivityManager.activeNetworkInfo ?: return false
+                @Suppress("DEPRECATION")
+                networkInfo.isConnected
             }
-        } else {
-            @Suppress("DEPRECATION") val networkInfo =
-                connectivityManager.activeNetworkInfo ?: return false
-            @Suppress("DEPRECATION")
-            return networkInfo.isConnected
+        } catch (e: Exception) {
+            throw BrehyException("Error checking internet connectivity", e)
         }
     }
 }
